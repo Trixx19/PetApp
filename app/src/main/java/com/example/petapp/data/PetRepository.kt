@@ -316,7 +316,7 @@ object PetRepository {
             specie = "Gato",
             breed = "SRD - Fêmea",
             birthDate = "11/02/2020",
-            description = "Nami é uma gata gorda, extremamente preguiçosa e dona de uma rotina muito bem definida: ela dorme, come e... dorme mais um pouco. Inclusive, quando dorme demais, fica tão cansada que precisa tirar outra soneca para se recuperar do cansaço de ter dormido tanto.",
+            description = "Nami é uma gata gorda, extremamente preguiçosa e dona de uma rotina muito bem definida: ela dorme, come e dorme mais um pouco. Inclusive, quando dorme demais, fica tão cansada que precisa tirar outra soneca para se recuperar do cansaço de ter dormido tanto.",
             imageRes = R.drawable.nami,
             vaccines = listOf(
                 Vaccine("Antirrábica", "10/08/2024", true),
