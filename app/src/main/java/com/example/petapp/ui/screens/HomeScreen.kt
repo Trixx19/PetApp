@@ -1,5 +1,7 @@
 package com.example.petapp.ui.screens
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -27,29 +29,52 @@ import com.example.petapp.data.model.Pet
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
+    var searchQuery by remember { mutableStateOf("") } // serve para armazenar a busca
     Scaffold(
-        topBar = {
+        topBar = { // top bar com o nome do app e o menu 3 pontinhos
             TopAppBar(
-                title = { Text("PetApp") },
+                title = { Text("Pet App") },
                 actions = {
                     MoreOptionsMenu(navController)
                 }
             )
         },
-        bottomBar = {
+        bottomBar = { // bottom bar com navegação
             BottomNavigationBar(navController)
         }
     ) { padding ->
-        PetList(
-            pets = PetRepository.petList,
-            navController = navController,
-            modifier = Modifier.padding(padding)
-        )
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+        ) {
+            // campo de busca
+            OutlinedTextField(
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
+                label = { Text("Buscar pet") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                singleLine = true
+            )
+
+            // filtra de acordo com o texto
+            val filteredPets = PetRepository.petList.filter {
+                it.name.contains(searchQuery, ignoreCase = true)
+            }
+
+            PetList( // mostra a lista dos pets filtrados em relação ao texto 
+                pets = filteredPets,
+                navController = navController
+            )
+        }
     }
 }
 
+
 @Composable
-fun PetList(pets: List<Pet>, navController: NavController, modifier: Modifier = Modifier) {
+fun PetList(pets: List<Pet>, navController: NavController, modifier: Modifier = Modifier) { // composable para criar a lista com cards
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
@@ -58,14 +83,14 @@ fun PetList(pets: List<Pet>, navController: NavController, modifier: Modifier = 
         items(pets.size) { index ->
             val pet = pets[index]
             PetCard(pet = pet) {
-                navController.navigate("details/${pet.id}")
+                navController.navigate("details/${pet.id}") // leva para o detalhe do pet específico
             }
         }
     }
 }
 
 @Composable
-fun PetCard(pet: Pet, onClick: () -> Unit) {
+fun PetCard(pet: Pet, onClick: () -> Unit) { // composable para exibir as informações do pet no card
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -81,7 +106,7 @@ fun PetCard(pet: Pet, onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(8.dp)
         ) {
-            Image(
+            Image( // imagem do pet
                 painter = painterResource(id = pet.imageRes),
                 contentDescription = pet.name,
                 modifier = Modifier
@@ -89,14 +114,21 @@ fun PetCard(pet: Pet, onClick: () -> Unit) {
                     .padding(4.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Column {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) { // informações textuais
                 Text(
                     text = pet.name,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "${pet.specie} - ${pet.breed}",
+                    text = pet.specie,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+                Text(
+                    text = pet.breed,
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
@@ -106,13 +138,22 @@ fun PetCard(pet: Pet, onClick: () -> Unit) {
                     maxLines = 2
                 )
             }
+            IconButton( // botão de favorito
+                onClick = { PetRepository.toggleFavorite(pet.id) }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "Favoritar",
+                    tint = if (pet.isFavorite) Color.Red else Color.Gray
+                )
+            }
         }
     }
 }
-@Composable
-fun MoreOptionsMenu(navController: NavController) {
-    var expanded = remember { mutableStateOf(false) }
 
+@Composable
+fun MoreOptionsMenu(navController: NavController) { // menu 3 pontinhos
+    var expanded = remember { mutableStateOf(false) } // estado aberto/fehado
     IconButton(onClick = { expanded.value = true }) {
         Icon(
             imageVector = Icons.Default.MoreVert,
@@ -122,7 +163,7 @@ fun MoreOptionsMenu(navController: NavController) {
     DropdownMenu(
         expanded = expanded.value,
         onDismissRequest = { expanded.value = false }
-    ) {
+    ) { // mostra e leva para as opções de favoritos, configurações e ajuda
         DropdownMenuItem(
             text = { Text("Favoritos") },
             onClick = {
@@ -147,7 +188,7 @@ fun MoreOptionsMenu(navController: NavController) {
     }
 }
 @Composable
-fun BottomNavigationBar(navController: NavController) {
+fun BottomNavigationBar(navController: NavController) { // composable da bottom bar com a home e favoritos, futuramente perfil também
     NavigationBar {
         NavigationBarItem(
             selected = false,
@@ -160,12 +201,6 @@ fun BottomNavigationBar(navController: NavController) {
             onClick = { navController.navigate("favorites") },
             icon = { Icon(Icons.Default.Favorite, contentDescription = "Favoritos") },
             label = { Text("Favoritos") }
-        )
-        NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate("settings") },
-            icon = { Icon(Icons.Default.Settings, contentDescription = "Configurações") },
-            label = { Text("Config.") }
         )
     }
 }

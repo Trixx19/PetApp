@@ -3,24 +3,23 @@ package com.example.petapp
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import com.example.petapp.ui.theme.PetAppTheme
-import androidx.activity.compose.setContent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import com.example.petapp.ui.navigation.AppNavHost
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            PetAppTheme {
-                AppNavHost()
+            var isDarkTheme by remember { mutableStateOf(false) } // estado que controla o tema (local)
+            PetAppTheme(darkTheme = isDarkTheme) {
+                AppNavHost( // informa o tema atual e troca para o outro
+                    isDarkTheme = isDarkTheme,
+                    onThemeChange = { isDarkTheme = it }
+                )
             }
         }
     }
