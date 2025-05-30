@@ -349,10 +349,69 @@ object PetRepository {
                 Appointment("Consulta Odontológica", "10/06/2025", "Limpeza dos dentes para manter a saúde bucal em dia.")
             ),
             isFavorite = false
+        ),
+        Pet(
+            id = 18,
+            name = "Leo",
+            specie = "Gato",
+            breed = "Sem Raça Definida - Macho",
+            birthDate = "12/03/2022",
+            description = "Leo é um gato carinhoso, brincalhão e adora tomar banho de sol. Seus pelos claros e olhos atentos fazem dele um companheiro encantador.",
+            imageRes = R.drawable.leo,
+            vaccines = listOf(
+                Vaccine("Antirrábica", "10/08/2024", true),
+                Vaccine("V4", "15/03/2024", true),
+                Vaccine("Leucemia Felina", "20/10/2024", false)
+            ),
+            appointments = listOf(
+                Appointment("Check-up Geral", "05/02/2025", "Avaliação geral de saúde e bem-estar."),
+                Appointment("Banho e Tosa", "25/04/2025", "Banho relaxante com produtos específicos para gatos."),
+                Appointment("Consulta Odontológica", "10/06/2025", "Avaliação e limpeza dos dentes.")
+            ),
+            isFavorite = false
+        ),
+        Pet(
+            id = 19,
+            name = "Princesa",
+            specie = "Gato",
+            breed = "Sem Raça Definida - Fêmea",
+            birthDate = "12/03/2022",
+            description = "Princesa é uma gata meiga, muito curiosa e adora ficar perto das pessoas. Seus pelos claros deixam sua beleza ainda mais evidente.",
+            imageRes = R.drawable.princesa,
+            vaccines = listOf(
+                Vaccine("Antirrábica", "10/08/2024", true),
+                Vaccine("V4", "15/03/2024", true),
+                Vaccine("Leucemia Felina", "20/10/2024", false)
+            ),
+            appointments = listOf(
+                Appointment("Check-up Geral", "05/02/2025", "Exame geral de saúde, está muito bem."),
+                Appointment("Banho e Tosa", "25/04/2025", "Banho especial para gatos e escovação dos pelos."),
+                Appointment("Consulta Odontológica", "10/06/2025", "Limpeza dos dentes para manter a saúde bucal.")
+            ),
+            isFavorite = false
+        ),
+        Pet(
+            id = 20,
+            name = "Lili",
+            specie = "Gato",
+            breed = "Sem Raça Definida - Fêmea",
+            birthDate = "08/07/2021",
+            description = "Lili é uma gatinha preta muito esperta que aprendeu a usar o vaso sanitário para suas necessidades. Super inteligente e independente!",
+            imageRes = R.drawable.lili,
+            vaccines = listOf(
+                Vaccine("Antirrábica", "15/09/2024", true),
+                Vaccine("V4", "10/02/2024", true),
+                Vaccine("Leucemia Felina", "05/11/2024", false)
+            ),
+            appointments = listOf(
+                Appointment("Check-up Geral", "12/03/2025", "Avaliação geral de saúde e comportamento."),
+                Appointment("Banho e Tosa", "30/05/2025", "Banho especial para gatos e cuidados com o pelo preto."),
+                Appointment("Consulta Odontológica", "20/07/2025", "Avaliação e limpeza dental.")
+            ),
+            isFavorite = false
+        ),
         )
-    )
     val petList: List<Pet> get() = _petList
-
     // função que alterna o favorito
     fun toggleFavorite(petId: Int) {
         val index = _petList.indexOfFirst { it.id == petId }
