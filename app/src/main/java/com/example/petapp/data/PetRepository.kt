@@ -328,7 +328,7 @@ object PetRepository {
                 Appointment("Banho a Seco", "05/05/2025", "Limpeza e escovação dos pelos para manter ela ainda mais cheirosa."),
                 Appointment("Consulta Nutricional", "18/06/2025", "Avaliação para controle de peso e alimentação saudável.")
             ),
-            isFavorite = true
+            isFavorite = false
         ),
         Pet(
             id = 17,
