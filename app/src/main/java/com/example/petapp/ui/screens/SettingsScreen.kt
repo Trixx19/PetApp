@@ -7,18 +7,27 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.petapp.data.PetRepository
+import com.example.petapp.data.SettingsDataStore
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    isDarkTheme: Boolean, // estado atual do tema
-    onThemeChange: (Boolean) -> Unit // função para alterar o tema
+    isDarkTheme: Boolean,
+    onThemeChange: (Boolean) -> Unit
 ) {
-    var notificationsEnabled by remember { mutableStateOf(true) } // para controlar as notificações (ainda não tem notificações, serão implementadas no futuro)
+    val context = LocalContext.current
+    // Instancia nosso DataStore
+    val settingsDataStore = SettingsDataStore(context)
+    // Coleta o estado atual das notificações
+    val notificationsEnabled by settingsDataStore.notificationsEnabled.collectAsState(initial = true)
+    val coroutineScope = rememberCoroutineScope()
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -42,18 +51,24 @@ fun SettingsScreen(
                 text = "Preferências",
                 style = MaterialTheme.typography.titleMedium
             )
-            SettingSwitch( // ativa e desativa as notificações (para implementação futura)
+            // Interruptor para as notificações
+            SettingSwitch(
                 title = "Ativar Notificações",
                 checked = notificationsEnabled,
-                onCheckedChange = { notificationsEnabled = it }
+                onCheckedChange = { isEnabled ->
+                    coroutineScope.launch {
+                        settingsDataStore.setNotificationsEnabled(isEnabled)
+                    }
+                }
             )
-            SettingSwitch( // ativa e desativa o modo claro e escuro
+            // Interruptor para o tema escuro
+            SettingSwitch(
                 title = "Ativar Modo Escuro",
                 checked = isDarkTheme,
                 onCheckedChange = onThemeChange
             )
             Divider()
-            Button( // botão para limpar os favoritos
+            Button(
                 onClick = { PetRepository.clearFavorites() },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error
@@ -65,8 +80,11 @@ fun SettingsScreen(
         }
     }
 }
+
+// O Composable do SettingSwitch pode continuar o mesmo que você já tinha.
+// Se precisar, aqui está ele novamente:
 @Composable
-fun SettingSwitch( // composable do texto + switch clicável
+fun SettingSwitch(
     title: String,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit

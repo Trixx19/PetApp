@@ -7,6 +7,16 @@ import com.example.petapp.data.model.Pet
 import com.example.petapp.data.model.Vaccine
 
 object PetRepository {
+    // Função para adicionar um lembrete a um pet
+    fun addReminderToPet(petId: Int, reminder: com.example.petapp.data.model.Reminder) {
+        val petIndex = _petList.indexOfFirst { it.id == petId }
+        if (petIndex != -1) {
+            val pet = _petList[petIndex]
+            pet.reminders.add(reminder)
+            // A linha abaixo é necessária para forçar a recomposição da UI
+            _petList[petIndex] = pet.copy(reminders = pet.reminders.toMutableList())
+        }
+    }
     private val _petList = mutableStateListOf(
         // Exemplo do mock de dados completo de cada Pet
         //        Pet(

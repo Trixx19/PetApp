@@ -1,11 +1,13 @@
 package com.example.petapp.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
@@ -14,41 +16,43 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.petapp.R
 import com.example.petapp.data.PetRepository
+import com.example.petapp.data.model.Priority
+import com.example.petapp.data.model.Reminder
 import com.example.petapp.ui.components.PlaySoundEffect
 import com.example.petapp.ui.theme.SuccessGreen
-
+import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PetDetailsScreen(petId: Int, navController: NavController) {
     val pet = PetRepository.getPetById(petId)
-    val context = LocalContext.current // controla o som atual
+    val context = LocalContext.current
+
+    // Lógica para o som (mantida do seu código original)
     var playSound by remember { mutableStateOf(false) }
-    val soundResId = when (pet?.specie?.lowercase()) { // identifica a especie e toca o som de acordo
+    val soundResId = when (pet?.specie?.lowercase()) {
         "cachorro" -> R.raw.bark
         "gato" -> R.raw.meow
         else -> null
     }
-    LaunchedEffect(petId) { // ativa o som quando o usuário abre a tela do pet detalhada
+    LaunchedEffect(petId) {
         playSound = true
     }
     soundResId?.let {
-        PlaySoundEffect(
-            context = context,
-            resId = it,
-            play = playSound
-        )
+        PlaySoundEffect(context = context, resId = it, play = playSound)
     }
+
     Scaffold(
-        topBar = { // top bar do detalhe do pet
+        topBar = {
             TopAppBar(
                 title = { Text(pet?.name ?: "Detalhes do Pet") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) { // botão de voltar
+                    IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Voltar"
@@ -56,9 +60,7 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { // botão de favoritar
-                        PetRepository.toggleFavorite(petId)
-                    }) {
+                    IconButton(onClick = { PetRepository.toggleFavorite(petId) }) {
                         Icon(
                             imageVector = if (pet?.isFavorite == true) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
                             contentDescription = "Favorito"
@@ -68,7 +70,7 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
             )
         }
     ) { padding ->
-        if (pet != null) { // exibe o pet se existir
+        if (pet != null) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -77,7 +79,8 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Image( // imagem do pet
+                // Informações do Pet
+                Image(
                     painter = painterResource(id = pet.imageRes),
                     contentDescription = "Foto do pet",
                     modifier = Modifier
@@ -85,7 +88,6 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                         .padding(8.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                // informações principais
                 Text(pet.name, style = MaterialTheme.typography.headlineSmall)
                 Text(pet.specie, style = MaterialTheme.typography.bodyLarge)
                 Text(pet.breed, style = MaterialTheme.typography.bodyLarge)
@@ -94,12 +96,14 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                 Text(pet.description, style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider()
-                Text( // vacinas do pet
+
+                // Seção de Vacinas (Versão original, sem o sino)
+                Text(
                     "Vacinas",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
-                if (pet.vaccines.isNotEmpty()) { // percorre o mock das vacinas e exibe cada uma
+                if (pet.vaccines.isNotEmpty()) {
                     pet.vaccines.forEach { vaccine ->
                         Card(
                             modifier = Modifier
@@ -117,11 +121,14 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                         }
                     }
                 } else {
-                    Text("Nenhuma vacina cadastrada.") // caso nenhuma seja cadastrada
+                    Text("Nenhuma vacina cadastrada.")
                 }
+
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider()
-                Text( // compromissos do pet
+
+                // Seção de Compromissos (Versão original, sem o sino)
+                Text(
                     "Compromissos",
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(vertical = 8.dp)
@@ -143,6 +150,37 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                 } else {
                     Text("Nenhum compromisso cadastrado.")
                 }
+
+                Spacer(modifier = Modifier.height(16.dp))
+                Divider()
+
+                // Nova Seção de Lembretes Agendados
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp) // Adiciona o mesmo padding dos outros títulos
+                ) {
+                    // Título centralizado
+                    Text(
+                        text = "Lembretes",
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
+                    // Botão alinhado à direita
+                    IconButton(
+                        onClick = { navController.navigate("add_reminder/${pet.id}") },
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Adicionar Lembrete")
+                    }
+                }
+                if (pet.reminders.isNotEmpty()) {
+                    pet.reminders.forEach { reminder ->
+                        ReminderCard(reminder = reminder)
+                    }
+                } else {
+                    Text("Nenhum lembrete agendado.")
+                }
             }
         } else {
             Box(
@@ -153,6 +191,29 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
             ) {
                 Text("Pet não encontrado")
             }
+        }
+    }
+}
+
+// Card para exibir os lembretes criados
+@Composable
+fun ReminderCard(reminder: Reminder) {
+    val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (reminder.priority == Priority.HIGH)
+                MaterialTheme.colorScheme.tertiaryContainer
+            else
+                MaterialTheme.colorScheme.secondaryContainer
+        )
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(reminder.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
+            Text("Agendado para: ${reminder.dateTime.format(formatter)}", style = MaterialTheme.typography.bodyMedium)
+            Text("Prioridade: ${if (reminder.priority == Priority.HIGH) "Alta" else "Baixa"}", style = MaterialTheme.typography.bodySmall)
         }
     }
 }
