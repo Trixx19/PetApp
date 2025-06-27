@@ -38,7 +38,7 @@ fun HomeScreen(navController: NavController) {
 
     LaunchedEffect(Unit) {
         isLoading = true
-        delay(1500) // Simula um atraso de 1.5 segundos
+        delay(1000) // atraso de 1 segundo
         petList = PetRepository.petList
         isLoading = false
     }
