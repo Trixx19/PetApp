@@ -30,6 +30,7 @@ import kotlinx.coroutines.delay
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.scale
+import androidx.compose.material.icons.filled.Add // Adicione este import
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,14 +48,18 @@ fun HomeScreen(navController: NavController) {
         },
         bottomBar = {
             BottomNavigationBar(navController)
+        },
+        floatingActionButton = { // ADICIONANDO O FLOATING ACTION BUTTON AQUI
+            FloatingActionButton(onClick = { navController.navigate("add_pet") }) { // Navega para a nova tela
+                Icon(Icons.Filled.Add, contentDescription = "Adicionar Novo Pet")
+            }
         }
-    ) { padding -> // O padding fornecido pelo Scaffold deve ser aplicado ao conteúdo
+    ) { padding ->
         Column(
             modifier = Modifier
-                .padding(padding) // APLIQUE O PADDING AQUI
+                .padding(padding)
                 .fillMaxSize()
         ) {
-            // Campo de busca agora está dentro da coluna principal
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -65,7 +70,6 @@ fun HomeScreen(navController: NavController) {
                 singleLine = true
             )
 
-            // A PetList também está dentro da coluna principal
             val filteredPets = PetRepository.petList.filter {
                 it.name.contains(searchQuery, ignoreCase = true)
             }
@@ -95,11 +99,10 @@ fun PetList(pets: List<Pet>, navController: NavController, modifier: Modifier = 
 
 @Composable
 fun PetCard(pet: Pet, onClick: () -> Unit) {
-    // Novo estado para controlar a animação de escala do ícone de favorito
     var scale by remember { mutableStateOf(1f) }
     val animatedScale by animateFloatAsState(
         targetValue = scale,
-        animationSpec = tween(durationMillis = 200), // Duração da animação
+        animationSpec = tween(durationMillis = 200),
         label = "FavoriteIconScale"
     )
 
@@ -140,7 +143,12 @@ fun PetCard(pet: Pet, onClick: () -> Unit) {
                     color = Color.Gray
                 )
                 Text(
-                    text = pet.breed,
+                    text = "Raça: ${pet.breed}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+                Text(
+                    text = "Sexo: ${pet.sex}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
@@ -153,10 +161,8 @@ fun PetCard(pet: Pet, onClick: () -> Unit) {
             IconButton(
                 onClick = {
                     PetRepository.toggleFavorite(pet.id)
-                    // Dispara a animação
-                    scale = 1.2f // Aumenta um pouco o tamanho
+                    scale = 1.2f
                 },
-                // Aplica o modificador de escala
                 modifier = Modifier.scale(animatedScale)
             ) {
                 Icon(
@@ -165,10 +171,9 @@ fun PetCard(pet: Pet, onClick: () -> Unit) {
                     tint = if (pet.isFavorite) Color.Red else Color.Gray
                 )
             }
-            // Resetar a escala após a animação (opcional, mas bom para reuso)
             LaunchedEffect(animatedScale) {
                 if (animatedScale == 1.2f) {
-                    scale = 1f // Volta ao tamanho normal
+                    scale = 1f
                 }
             }
         }

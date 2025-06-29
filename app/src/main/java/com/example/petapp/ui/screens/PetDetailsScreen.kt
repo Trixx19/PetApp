@@ -26,19 +26,18 @@ import com.example.petapp.data.model.Reminder
 import com.example.petapp.ui.components.PlaySoundEffect
 import com.example.petapp.ui.theme.SuccessGreen
 import java.time.format.DateTimeFormatter
-import kotlinx.coroutines.delay // Importe delay
-import androidx.compose.animation.core.animateFloatAsState // Adicione
-import androidx.compose.animation.core.tween // Adicione
-import androidx.compose.ui.draw.scale // Adicione
+import kotlinx.coroutines.delay
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.scale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PetDetailsScreen(petId: Int, navController: NavController) {
-    var pet by remember { mutableStateOf(PetRepository.getPetById(petId)) } // Pode ser nulo inicialmente
-    var isLoading by remember { mutableStateOf(true) } // Novo estado para controle de carregamento
+    var pet by remember { mutableStateOf(PetRepository.getPetById(petId)) }
+    var isLoading by remember { mutableStateOf(true) }
     val context = LocalContext.current
 
-    // Lógica para o som (mantida do seu código original)
     var playSound by remember { mutableStateOf(false) }
     val soundResId = when (pet?.specie?.lowercase()) {
         "cachorro" -> R.raw.bark
@@ -47,17 +46,16 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
     }
 
     LaunchedEffect(petId) {
-        isLoading = true // Define como carregando
-        delay(1000) // Simula um atraso de 1 segundo
-        pet = PetRepository.getPetById(petId) // Carrega o pet após o atraso
+        isLoading = true
+        delay(1000)
+        pet = PetRepository.getPetById(petId)
         playSound = true
-        isLoading = false // Finaliza o carregamento
+        isLoading = false
     }
     soundResId?.let {
         PlaySoundEffect(context = context, resId = it, play = playSound)
     }
 
-    // Novo estado para controlar a animação de escala do ícone de favorito
     var favoriteScale by remember { mutableStateOf(1f) }
     val animatedFavoriteScale by animateFloatAsState(
         targetValue = favoriteScale,
@@ -68,7 +66,7 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(pet?.name ?: if (isLoading) "Carregando..." else "Detalhes do Pet") }, // Exibe "Carregando..."
+                title = { Text(pet?.name ?: if (isLoading) "Carregando..." else "Detalhes do Pet") },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
@@ -78,15 +76,13 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                     }
                 },
                 actions = {
-                    if (!isLoading && pet != null) { // Mostra o botão de favorito apenas se não estiver carregando e o pet existir
+                    if (!isLoading && pet != null) {
                         IconButton(
                             onClick = {
                                 PetRepository.toggleFavorite(petId)
-                                pet = PetRepository.getPetById(petId)
-                                // Dispara a animação
-                                favoriteScale = 1.2f // Aumenta um pouco o tamanho
+                                pet = PetRepository.getPetById(petId) // Reatualiza o objeto pet localmente
+                                favoriteScale = 1.2f
                             },
-                            // Aplica o modificador de escala
                             modifier = Modifier.scale(animatedFavoriteScale)
                         ) {
                             Icon(
@@ -94,10 +90,9 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                                 contentDescription = "Favorito"
                             )
                         }
-                        // Resetar a escala após a animação (opcional)
                         LaunchedEffect(animatedFavoriteScale) {
                             if (animatedFavoriteScale == 1.2f) {
-                                favoriteScale = 1f // Volta ao tamanho normal
+                                favoriteScale = 1f
                             }
                         }
                     }
@@ -105,7 +100,7 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
             )
         }
     ) { padding ->
-        if (isLoading) { // Exibe o indicador de progresso enquanto carrega
+        if (isLoading) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -125,7 +120,7 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
             ) {
                 // Informações do Pet
                 Image(
-                    painter = painterResource(id = pet!!.imageRes), // Use pet!! agora que sabemos que não é nulo
+                    painter = painterResource(id = pet!!.imageRes),
                     contentDescription = "Foto do pet",
                     modifier = Modifier
                         .size(200.dp)
@@ -134,8 +129,9 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(pet!!.name, style = MaterialTheme.typography.headlineSmall)
                 Text(pet!!.specie, style = MaterialTheme.typography.bodyLarge)
-                Text(pet!!.breed, style = MaterialTheme.typography.bodyLarge)
-                Text("Nascimento: ${pet!!.birthDate}", style = MaterialTheme.typography.bodyMedium)
+                Text(pet!!.breed, style = MaterialTheme.typography.bodyLarge) // Exibe a raça
+                Text(pet!!.sex, style = MaterialTheme.typography.bodyLarge) // Exibe o sexo
+                Text(pet!!.birthDate, style = MaterialTheme.typography.bodyLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(pet!!.description, style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.height(16.dp))
@@ -202,13 +198,15 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp)
+                        .padding(vertical = 8.dp) // Adiciona o mesmo padding dos outros títulos
                 ) {
+                    // Título centralizado
                     Text(
                         text = "Lembretes",
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.align(Alignment.Center)
                     )
+                    // Botão alinhado à direita
                     IconButton(
                         onClick = { navController.navigate("add_reminder/${pet!!.id}") },
                         modifier = Modifier.align(Alignment.CenterEnd)

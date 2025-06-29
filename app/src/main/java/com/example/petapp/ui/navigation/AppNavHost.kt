@@ -4,14 +4,13 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-// Importe as novas funções de slide
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.slideInHorizontally // Manter este se quiser para outras rotas
-import androidx.compose.animation.slideOutHorizontally // Manter este se quiser para outras rotas
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import com.example.petapp.ui.screens.AddReminderScreen
+// Importe a nova tela
+import com.example.petapp.ui.screens.AddPetScreen
 import com.example.petapp.ui.screens.FavoritesScreen
 import com.example.petapp.ui.screens.HelpScreen
 import com.example.petapp.ui.screens.HomeScreen
@@ -30,7 +29,7 @@ fun AppNavHost(
 ) {
     AnimatedNavHost(navController = navController, startDestination = "home") {
 
-        val animationDuration = 700 // Duração da animação em milissegundos
+        val animationDuration = 700
 
         // Home Screen - Mantém o fade para a entrada inicial
         composable(
@@ -41,18 +40,37 @@ fun AppNavHost(
             HomeScreen(navController)
         }
 
-        // Pet Details Screen - Animação de swipe de baixo para cima
+        // Rota para adicionar novo pet - Animação de swipe de baixo para cima
         composable(
-            "details/{petId}",
+            "add_pet",
             enterTransition = {
                 slideInVertically(
-                    initialOffsetY = { fullHeight -> fullHeight }, // Começa de baixo (altura total da tela)
+                    initialOffsetY = { fullHeight -> fullHeight },
                     animationSpec = tween(animationDuration)
                 ) + fadeIn(animationSpec = tween(animationDuration))
             },
             exitTransition = {
                 slideOutVertically(
-                    targetOffsetY = { fullHeight -> -fullHeight }, // Sai para cima (altura total da tela negativa)
+                    targetOffsetY = { fullHeight -> -fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeOut(animationSpec = tween(animationDuration))
+            }
+        ) {
+            AddPetScreen(navController = navController)
+        }
+
+        // Pet Details Screen - Animação de swipe de baixo para cima
+        composable(
+            "details/{petId}",
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeIn(animationSpec = tween(animationDuration))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { fullHeight -> -fullHeight },
                     animationSpec = tween(animationDuration)
                 ) + fadeOut(animationSpec = tween(animationDuration))
             }
