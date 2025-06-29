@@ -11,7 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Home // <<<--- A LINHA QUE FALTAVA
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -27,21 +27,14 @@ import androidx.navigation.NavController
 import com.example.petapp.data.PetRepository
 import com.example.petapp.data.model.Pet
 import kotlinx.coroutines.delay
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.scale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
-
-    var petList by remember { mutableStateOf<List<Pet>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        isLoading = true
-        delay(1000) // atraso de 1 segundo
-        petList = PetRepository.petList
-        isLoading = false
-    }
 
     Scaffold(
         topBar = {
@@ -55,12 +48,13 @@ fun HomeScreen(navController: NavController) {
         bottomBar = {
             BottomNavigationBar(navController)
         }
-    ) { padding ->
+    ) { padding -> // O padding fornecido pelo Scaffold deve ser aplicado ao conteúdo
         Column(
             modifier = Modifier
-                .padding(padding)
+                .padding(padding) // APLIQUE O PADDING AQUI
                 .fillMaxSize()
         ) {
+            // Campo de busca agora está dentro da coluna principal
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -71,22 +65,14 @@ fun HomeScreen(navController: NavController) {
                 singleLine = true
             )
 
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                val filteredPets = petList.filter {
-                    it.name.contains(searchQuery, ignoreCase = true)
-                }
-                PetList(
-                    pets = filteredPets,
-                    navController = navController
-                )
+            // A PetList também está dentro da coluna principal
+            val filteredPets = PetRepository.petList.filter {
+                it.name.contains(searchQuery, ignoreCase = true)
             }
+            PetList(
+                pets = filteredPets,
+                navController = navController
+            )
         }
     }
 }
@@ -109,6 +95,14 @@ fun PetList(pets: List<Pet>, navController: NavController, modifier: Modifier = 
 
 @Composable
 fun PetCard(pet: Pet, onClick: () -> Unit) {
+    // Novo estado para controlar a animação de escala do ícone de favorito
+    var scale by remember { mutableStateOf(1f) }
+    val animatedScale by animateFloatAsState(
+        targetValue = scale,
+        animationSpec = tween(durationMillis = 200), // Duração da animação
+        label = "FavoriteIconScale"
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -157,13 +151,25 @@ fun PetCard(pet: Pet, onClick: () -> Unit) {
                 )
             }
             IconButton(
-                onClick = { PetRepository.toggleFavorite(pet.id) }
+                onClick = {
+                    PetRepository.toggleFavorite(pet.id)
+                    // Dispara a animação
+                    scale = 1.2f // Aumenta um pouco o tamanho
+                },
+                // Aplica o modificador de escala
+                modifier = Modifier.scale(animatedScale)
             ) {
                 Icon(
                     imageVector = Icons.Default.Favorite,
                     contentDescription = "Favoritar",
                     tint = if (pet.isFavorite) Color.Red else Color.Gray
                 )
+            }
+            // Resetar a escala após a animação (opcional, mas bom para reuso)
+            LaunchedEffect(animatedScale) {
+                if (animatedScale == 1.2f) {
+                    scale = 1f // Volta ao tamanho normal
+                }
             }
         }
     }

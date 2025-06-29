@@ -26,11 +26,16 @@ import com.example.petapp.data.model.Reminder
 import com.example.petapp.ui.components.PlaySoundEffect
 import com.example.petapp.ui.theme.SuccessGreen
 import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay // Importe delay
+import androidx.compose.animation.core.animateFloatAsState // Adicione
+import androidx.compose.animation.core.tween // Adicione
+import androidx.compose.ui.draw.scale // Adicione
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PetDetailsScreen(petId: Int, navController: NavController) {
-    val pet = PetRepository.getPetById(petId)
+    var pet by remember { mutableStateOf(PetRepository.getPetById(petId)) } // Pode ser nulo inicialmente
+    var isLoading by remember { mutableStateOf(true) } // Novo estado para controle de carregamento
     val context = LocalContext.current
 
     // Lógica para o som (mantida do seu código original)
@@ -40,17 +45,30 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
         "gato" -> R.raw.meow
         else -> null
     }
+
     LaunchedEffect(petId) {
+        isLoading = true // Define como carregando
+        delay(1000) // Simula um atraso de 1 segundo
+        pet = PetRepository.getPetById(petId) // Carrega o pet após o atraso
         playSound = true
+        isLoading = false // Finaliza o carregamento
     }
     soundResId?.let {
         PlaySoundEffect(context = context, resId = it, play = playSound)
     }
 
+    // Novo estado para controlar a animação de escala do ícone de favorito
+    var favoriteScale by remember { mutableStateOf(1f) }
+    val animatedFavoriteScale by animateFloatAsState(
+        targetValue = favoriteScale,
+        animationSpec = tween(durationMillis = 200),
+        label = "FavoriteIconScaleDetails"
+    )
+
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(pet?.name ?: "Detalhes do Pet") },
+                title = { Text(pet?.name ?: if (isLoading) "Carregando..." else "Detalhes do Pet") }, // Exibe "Carregando..."
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
@@ -60,17 +78,43 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                     }
                 },
                 actions = {
-                    IconButton(onClick = { PetRepository.toggleFavorite(petId) }) {
-                        Icon(
-                            imageVector = if (pet?.isFavorite == true) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                            contentDescription = "Favorito"
-                        )
+                    if (!isLoading && pet != null) { // Mostra o botão de favorito apenas se não estiver carregando e o pet existir
+                        IconButton(
+                            onClick = {
+                                PetRepository.toggleFavorite(petId)
+                                pet = PetRepository.getPetById(petId)
+                                // Dispara a animação
+                                favoriteScale = 1.2f // Aumenta um pouco o tamanho
+                            },
+                            // Aplica o modificador de escala
+                            modifier = Modifier.scale(animatedFavoriteScale)
+                        ) {
+                            Icon(
+                                imageVector = if (pet?.isFavorite == true) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                                contentDescription = "Favorito"
+                            )
+                        }
+                        // Resetar a escala após a animação (opcional)
+                        LaunchedEffect(animatedFavoriteScale) {
+                            if (animatedFavoriteScale == 1.2f) {
+                                favoriteScale = 1f // Volta ao tamanho normal
+                            }
+                        }
                     }
                 }
             )
         }
     ) { padding ->
-        if (pet != null) {
+        if (isLoading) { // Exibe o indicador de progresso enquanto carrega
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
+            }
+        } else if (pet != null) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -81,19 +125,19 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
             ) {
                 // Informações do Pet
                 Image(
-                    painter = painterResource(id = pet.imageRes),
+                    painter = painterResource(id = pet!!.imageRes), // Use pet!! agora que sabemos que não é nulo
                     contentDescription = "Foto do pet",
                     modifier = Modifier
                         .size(200.dp)
                         .padding(8.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                Text(pet.name, style = MaterialTheme.typography.headlineSmall)
-                Text(pet.specie, style = MaterialTheme.typography.bodyLarge)
-                Text(pet.breed, style = MaterialTheme.typography.bodyLarge)
-                Text("Nascimento: ${pet.birthDate}", style = MaterialTheme.typography.bodyMedium)
+                Text(pet!!.name, style = MaterialTheme.typography.headlineSmall)
+                Text(pet!!.specie, style = MaterialTheme.typography.bodyLarge)
+                Text(pet!!.breed, style = MaterialTheme.typography.bodyLarge)
+                Text("Nascimento: ${pet!!.birthDate}", style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(pet.description, style = MaterialTheme.typography.bodyMedium)
+                Text(pet!!.description, style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider()
 
@@ -103,8 +147,8 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
-                if (pet.vaccines.isNotEmpty()) {
-                    pet.vaccines.forEach { vaccine ->
+                if (pet!!.vaccines.isNotEmpty()) {
+                    pet!!.vaccines.forEach { vaccine ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -133,8 +177,8 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
-                if (pet.appointments.isNotEmpty()) {
-                    pet.appointments.forEach { appointment ->
+                if (pet!!.appointments.isNotEmpty()) {
+                    pet!!.appointments.forEach { appointment ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -158,24 +202,22 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp) // Adiciona o mesmo padding dos outros títulos
+                        .padding(vertical = 8.dp)
                 ) {
-                    // Título centralizado
                     Text(
                         text = "Lembretes",
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.align(Alignment.Center)
                     )
-                    // Botão alinhado à direita
                     IconButton(
-                        onClick = { navController.navigate("add_reminder/${pet.id}") },
+                        onClick = { navController.navigate("add_reminder/${pet!!.id}") },
                         modifier = Modifier.align(Alignment.CenterEnd)
                     ) {
                         Icon(Icons.Default.Add, contentDescription = "Adicionar Lembrete")
                     }
                 }
-                if (pet.reminders.isNotEmpty()) {
-                    pet.reminders.forEach { reminder ->
+                if (pet!!.reminders.isNotEmpty()) {
+                    pet!!.reminders.forEach { reminder ->
                         ReminderCard(reminder = reminder)
                     }
                 } else {

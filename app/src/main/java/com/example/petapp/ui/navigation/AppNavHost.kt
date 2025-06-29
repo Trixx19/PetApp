@@ -4,8 +4,11 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
+// Importe as novas funções de slide
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.slideInHorizontally // Manter este se quiser para outras rotas
+import androidx.compose.animation.slideOutHorizontally // Manter este se quiser para outras rotas
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import com.example.petapp.ui.screens.AddReminderScreen
@@ -21,29 +24,38 @@ import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
 fun AppNavHost(
-    // Trocamos o NavController padrão pelo animado
     navController: NavHostController = rememberAnimatedNavController(),
     isDarkTheme: Boolean,
     onThemeChange: (Boolean) -> Unit
 ) {
-    // Trocamos NavHost por AnimatedNavHost
     AnimatedNavHost(navController = navController, startDestination = "home") {
 
-        val animationSpec = tween<Float>(700)
+        val animationDuration = 700 // Duração da animação em milissegundos
 
-        // Adicionamos as animações a cada rota
+        // Home Screen - Mantém o fade para a entrada inicial
         composable(
             "home",
-            enterTransition = { fadeIn(animationSpec = tween(700)) },
-            exitTransition = { fadeOut(animationSpec = tween(700)) }
+            enterTransition = { fadeIn(animationSpec = tween(animationDuration)) },
+            exitTransition = { fadeOut(animationSpec = tween(animationDuration)) }
         ) {
             HomeScreen(navController)
         }
 
+        // Pet Details Screen - Animação de swipe de baixo para cima
         composable(
             "details/{petId}",
-            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
-            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight }, // Começa de baixo (altura total da tela)
+                    animationSpec = tween(animationDuration)
+                ) + fadeIn(animationSpec = tween(animationDuration))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { fullHeight -> -fullHeight }, // Sai para cima (altura total da tela negativa)
+                    animationSpec = tween(animationDuration)
+                ) + fadeOut(animationSpec = tween(animationDuration))
+            }
         ) { backStackEntry ->
             val petId = backStackEntry.arguments?.getString("petId")?.toIntOrNull()
             if (petId != null) {
@@ -53,18 +65,40 @@ fun AppNavHost(
             }
         }
 
+        // Favorites Screen - Animação de swipe de baixo para cima
         composable(
             "favorites",
-            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
-            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeIn(animationSpec = tween(animationDuration))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { fullHeight -> -fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeOut(animationSpec = tween(animationDuration))
+            }
         ) {
             FavoritesScreen(navController)
         }
 
+        // Settings Screen - Animação de swipe de baixo para cima
         composable(
             "settings",
-            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
-            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeIn(animationSpec = tween(animationDuration))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { fullHeight -> -fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeOut(animationSpec = tween(animationDuration))
+            }
         ) {
             SettingsScreen(
                 navController = navController,
@@ -73,18 +107,40 @@ fun AppNavHost(
             )
         }
 
+        // Help Screen - Animação de swipe de baixo para cima
         composable(
             "help",
-            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
-            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeIn(animationSpec = tween(animationDuration))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { fullHeight -> -fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeOut(animationSpec = tween(animationDuration))
+            }
         ) {
             HelpScreen(navController)
         }
 
+        // Add Reminder Screen - Animação de swipe de baixo para cima
         composable(
             "add_reminder/{petId}",
-            enterTransition = { slideInHorizontally(initialOffsetX = { 1000 }) + fadeIn() },
-            exitTransition = { slideOutHorizontally(targetOffsetX = { -1000 }) + fadeOut() }
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeIn(animationSpec = tween(animationDuration))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { fullHeight -> -fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeOut(animationSpec = tween(animationDuration))
+            }
         ) { backStackEntry ->
             val petId = backStackEntry.arguments?.getString("petId")?.toIntOrNull()
             if (petId != null) {
