@@ -6,14 +6,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -25,13 +26,19 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.petapp.data.PetRepository
 import com.example.petapp.data.model.Pet
+import kotlinx.coroutines.delay
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.scale
+import androidx.compose.material.icons.filled.Add // Adicione este import
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
-    var searchQuery by remember { mutableStateOf("") } // serve para armazenar a busca
+    var searchQuery by remember { mutableStateOf("") }
+
     Scaffold(
-        topBar = { // top bar com o nome do app e o menu 3 pontinhos
+        topBar = {
             TopAppBar(
                 title = { Text("Pet App") },
                 actions = {
@@ -39,8 +46,13 @@ fun HomeScreen(navController: NavController) {
                 }
             )
         },
-        bottomBar = { // bottom bar com navegação
+        bottomBar = {
             BottomNavigationBar(navController)
+        },
+        floatingActionButton = { // ADICIONANDO O FLOATING ACTION BUTTON AQUI
+            FloatingActionButton(onClick = { navController.navigate("add_pet") }) { // Navega para a nova tela
+                Icon(Icons.Filled.Add, contentDescription = "Adicionar Novo Pet")
+            }
         }
     ) { padding ->
         Column(
@@ -48,7 +60,6 @@ fun HomeScreen(navController: NavController) {
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // campo de busca
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -59,12 +70,10 @@ fun HomeScreen(navController: NavController) {
                 singleLine = true
             )
 
-            // filtra de acordo com o texto
             val filteredPets = PetRepository.petList.filter {
                 it.name.contains(searchQuery, ignoreCase = true)
             }
-
-            PetList( // mostra a lista dos pets filtrados em relação ao texto 
+            PetList(
                 pets = filteredPets,
                 navController = navController
             )
@@ -74,23 +83,29 @@ fun HomeScreen(navController: NavController) {
 
 
 @Composable
-fun PetList(pets: List<Pet>, navController: NavController, modifier: Modifier = Modifier) { // composable para criar a lista com cards
+fun PetList(pets: List<Pet>, navController: NavController, modifier: Modifier = Modifier) {
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
             .padding(8.dp)
     ) {
-        items(pets.size) { index ->
-            val pet = pets[index]
+        items(pets) { pet ->
             PetCard(pet = pet) {
-                navController.navigate("details/${pet.id}") // leva para o detalhe do pet específico
+                navController.navigate("details/${pet.id}")
             }
         }
     }
 }
 
 @Composable
-fun PetCard(pet: Pet, onClick: () -> Unit) { // composable para exibir as informações do pet no card
+fun PetCard(pet: Pet, onClick: () -> Unit) {
+    var scale by remember { mutableStateOf(1f) }
+    val animatedScale by animateFloatAsState(
+        targetValue = scale,
+        animationSpec = tween(durationMillis = 200),
+        label = "FavoriteIconScale"
+    )
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -106,7 +121,7 @@ fun PetCard(pet: Pet, onClick: () -> Unit) { // composable para exibir as inform
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(8.dp)
         ) {
-            Image( // imagem do pet
+            Image(
                 painter = painterResource(id = pet.imageRes),
                 contentDescription = pet.name,
                 modifier = Modifier
@@ -116,7 +131,7 @@ fun PetCard(pet: Pet, onClick: () -> Unit) { // composable para exibir as inform
             Spacer(modifier = Modifier.width(8.dp))
             Column(
                 modifier = Modifier.weight(1f)
-            ) { // informações textuais
+            ) {
                 Text(
                     text = pet.name,
                     style = MaterialTheme.typography.titleMedium,
@@ -128,7 +143,12 @@ fun PetCard(pet: Pet, onClick: () -> Unit) { // composable para exibir as inform
                     color = Color.Gray
                 )
                 Text(
-                    text = pet.breed,
+                    text = "Raça: ${pet.breed}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.Gray
+                )
+                Text(
+                    text = "Sexo: ${pet.sex}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = Color.Gray
                 )
@@ -138,8 +158,12 @@ fun PetCard(pet: Pet, onClick: () -> Unit) { // composable para exibir as inform
                     maxLines = 2
                 )
             }
-            IconButton( // botão de favorito
-                onClick = { PetRepository.toggleFavorite(pet.id) }
+            IconButton(
+                onClick = {
+                    PetRepository.toggleFavorite(pet.id)
+                    scale = 1.2f
+                },
+                modifier = Modifier.scale(animatedScale)
             ) {
                 Icon(
                     imageVector = Icons.Default.Favorite,
@@ -147,13 +171,18 @@ fun PetCard(pet: Pet, onClick: () -> Unit) { // composable para exibir as inform
                     tint = if (pet.isFavorite) Color.Red else Color.Gray
                 )
             }
+            LaunchedEffect(animatedScale) {
+                if (animatedScale == 1.2f) {
+                    scale = 1f
+                }
+            }
         }
     }
 }
 
 @Composable
-fun MoreOptionsMenu(navController: NavController) { // menu 3 pontinhos
-    var expanded = remember { mutableStateOf(false) } // estado aberto/fehado
+fun MoreOptionsMenu(navController: NavController) {
+    var expanded = remember { mutableStateOf(false) }
     IconButton(onClick = { expanded.value = true }) {
         Icon(
             imageVector = Icons.Default.MoreVert,
@@ -163,7 +192,7 @@ fun MoreOptionsMenu(navController: NavController) { // menu 3 pontinhos
     DropdownMenu(
         expanded = expanded.value,
         onDismissRequest = { expanded.value = false }
-    ) { // mostra e leva para as opções de favoritos, configurações e ajuda
+    ) {
         DropdownMenuItem(
             text = { Text("Favoritos") },
             onClick = {
@@ -188,7 +217,7 @@ fun MoreOptionsMenu(navController: NavController) { // menu 3 pontinhos
     }
 }
 @Composable
-fun BottomNavigationBar(navController: NavController) { // composable da bottom bar com a home e favoritos, futuramente perfil também
+fun BottomNavigationBar(navController: NavController) {
     NavigationBar {
         NavigationBarItem(
             selected = false,
