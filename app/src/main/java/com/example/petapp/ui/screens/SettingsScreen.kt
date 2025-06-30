@@ -1,4 +1,4 @@
-// app/src/main/java/com/example/petapp/ui/screens/SettingsScreen.kt
+// TELA DE CONFIGURAÇÕES
 package com.example.petapp.ui.screens
 
 import androidx.compose.foundation.layout.*
@@ -19,16 +19,14 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    // Removido: isDarkTheme e onThemeChange não são mais passados diretamente aqui
 ) {
     val context = LocalContext.current
     val settingsDataStore = SettingsDataStore(context)
     val coroutineScope = rememberCoroutineScope()
 
-    // Coleta o estado atual das notificações do DataStore
+    // coleta o estado do DataStore
     val notificationsEnabled by settingsDataStore.notificationsEnabled.collectAsState(initial = true)
-    // --- NOVO: Coleta o estado atual do modo escuro do DataStore ---
-    val isDarkThemeEnabled by settingsDataStore.darkModeEnabled.collectAsState(initial = false) // Use o valor padrão aqui
+    val isDarkThemeEnabled by settingsDataStore.darkModeEnabled.collectAsState(initial = false)
 
     Scaffold(
         topBar = {
@@ -53,7 +51,7 @@ fun SettingsScreen(
                 text = "Preferências",
                 style = MaterialTheme.typography.titleMedium
             )
-            // Interruptor para as notificações
+            // switch de notificaç~ies
             SettingSwitch(
                 title = "Ativar Notificações",
                 checked = notificationsEnabled,
@@ -63,13 +61,13 @@ fun SettingsScreen(
                     }
                 }
             )
-            // --- NOVO: Interruptor para o tema escuro usando DataStore ---
+            // switch de tema escuro e claro
             SettingSwitch(
                 title = "Ativar Modo Escuro",
-                checked = isDarkThemeEnabled, // Usa o estado lido do DataStore
+                checked = isDarkThemeEnabled,
                 onCheckedChange = { isEnabled ->
                     coroutineScope.launch {
-                        settingsDataStore.setDarkModeEnabled(isEnabled) // Salva no DataStore
+                        settingsDataStore.setDarkModeEnabled(isEnabled)
                     }
                 }
             )
@@ -86,8 +84,6 @@ fun SettingsScreen(
         }
     }
 }
-
-// O Composable do SettingSwitch continua o mesmo.
 @Composable
 fun SettingSwitch(
     title: String,

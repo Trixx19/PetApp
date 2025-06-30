@@ -1,3 +1,4 @@
+// PLAYER DE SOM DOS PETS NA DETAIL SCREEN
 package com.example.petapp.ui.components
 
 import android.content.Context

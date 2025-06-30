@@ -1,3 +1,4 @@
+// SCAFOLD PADRÃO DO APP
 package com.example.petapp.ui.components
 
 import androidx.compose.material.icons.Icons

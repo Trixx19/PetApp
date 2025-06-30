@@ -1,4 +1,4 @@
-// app/src/main/java/com/example/petapp/ui/navigation/AppNavHost.kt
+// NAVHOST DO APP
 package com.example.petapp.ui.navigation
 
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -16,6 +16,7 @@ import com.example.petapp.ui.screens.HelpScreen
 import com.example.petapp.ui.screens.HomeScreen
 import com.example.petapp.ui.screens.PetDetailsScreen
 import com.example.petapp.ui.screens.SettingsScreen
+import com.example.petapp.ui.screens.InformationScreen
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
@@ -24,14 +25,11 @@ import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 @Composable
 fun AppNavHost(
     navController: NavHostController = rememberAnimatedNavController(),
-    // isDarkTheme: Boolean, // Remova esta linha
-    // onThemeChange: (Boolean) -> Unit // Remova esta linha
 ) {
     AnimatedNavHost(navController = navController, startDestination = "home") {
-
+        // algumas tem fade para deixar mais notável a animação de "beat" do ícone
         val animationDuration = 700
-
-        // Home Screen - Mantém o fade para a entrada inicial
+        // home com fade normal
         composable(
             "home",
             enterTransition = { fadeIn(animationSpec = tween(animationDuration)) },
@@ -39,8 +37,7 @@ fun AppNavHost(
         ) {
             HomeScreen(navController)
         }
-
-        // Rota para adicionar novo pet - Animação de swipe de baixo para cima
+        // adicionar pet com slide vertical
         composable(
             "add_pet",
             enterTransition = {
@@ -58,8 +55,7 @@ fun AppNavHost(
         ) {
             AddPetScreen(navController = navController)
         }
-
-        // Pet Details Screen - Animação de swipe de baixo para cima
+        // detalhes do pet com slide vertical
         composable(
             "details/{petId}",
             enterTransition = {
@@ -83,26 +79,16 @@ fun AppNavHost(
             }
         }
 
-        // Favorites Screen - Animação de swipe de baixo para cima
+        // favorites com fade normal
         composable(
             "favorites",
-            enterTransition = {
-                slideInVertically(
-                    initialOffsetY = { fullHeight -> fullHeight },
-                    animationSpec = tween(animationDuration)
-                ) + fadeIn(animationSpec = tween(animationDuration))
-            },
-            exitTransition = {
-                slideOutVertically(
-                    targetOffsetY = { fullHeight -> -fullHeight },
-                    animationSpec = tween(animationDuration)
-                ) + fadeOut(animationSpec = tween(animationDuration))
-            }
+            enterTransition = { fadeIn(animationSpec = tween(animationDuration)) },
+            exitTransition = { fadeOut(animationSpec = tween(animationDuration)) }
         ) {
             FavoritesScreen(navController)
         }
 
-        // Settings Screen - Animação de swipe de baixo para cima
+        // configurações com slide vertical
         composable(
             "settings",
             enterTransition = {
@@ -120,12 +106,10 @@ fun AppNavHost(
         ) {
             SettingsScreen(
                 navController = navController,
-                // isDarkTheme = isDarkTheme, // Remova esta linha
-                // onThemeChange = onThemeChange // Remova esta linha
             )
         }
 
-        // Help Screen - Animação de swipe de baixo para cima
+        // help com slide
         composable(
             "help",
             enterTransition = {
@@ -144,7 +128,7 @@ fun AppNavHost(
             HelpScreen(navController)
         }
 
-        // Add Reminder Screen - Animação de swipe de baixo para cima
+        // lembrete com slide vertical
         composable(
             "add_reminder/{petId}",
             enterTransition = {
@@ -164,6 +148,25 @@ fun AppNavHost(
             if (petId != null) {
                 AddReminderScreen(petId = petId, navController = navController)
             }
+        }
+
+        // information - slide vertical
+        composable(
+            "information",
+            enterTransition = {
+                slideInVertically(
+                    initialOffsetY = { fullHeight -> fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeIn(animationSpec = tween(animationDuration))
+            },
+            exitTransition = {
+                slideOutVertically(
+                    targetOffsetY = { fullHeight -> -fullHeight },
+                    animationSpec = tween(animationDuration)
+                ) + fadeOut(animationSpec = tween(animationDuration))
+            }
+        ) {
+            InformationScreen(navController = navController)
         }
     }
 }

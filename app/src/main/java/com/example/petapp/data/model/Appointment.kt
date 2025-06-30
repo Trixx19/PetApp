@@ -1,3 +1,4 @@
+// CLASSE DE DADOS DOS COMPROMISSOS
 package com.example.petapp.data.model
 
 import java.time.LocalDateTime
@@ -5,16 +6,16 @@ import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
 
 data class Appointment(
-    val title: String,
-    val date: String, // "dd/MM/yyyy"
-    val description: String
+    val title: String, // nome do compromisso
+    val date: String, // data com dia/mes/ano
+    val description: String // descrição do compormisso
 ) {
-    // Função auxiliar similar à de Vaccine
+    // função auxiliar similar à de vacina
     fun getLocalDateTime(): LocalDateTime? {
         return try {
             val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
             val localDate = java.time.LocalDate.parse(date, formatter)
-            localDate.atTime(9, 0) // Retorna a data às 09:00
+            localDate.atTime(9, 0)
         } catch (e: DateTimeParseException) {
             null
         }

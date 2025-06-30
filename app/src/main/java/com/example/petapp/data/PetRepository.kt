@@ -1,3 +1,4 @@
+// REPOSITORIO DE PETS COM OS DADOS MOCKADOS
 package com.example.petapp.data
 
 import androidx.compose.runtime.mutableStateListOf
@@ -7,31 +8,28 @@ import com.example.petapp.data.model.Pet
 import com.example.petapp.data.model.Vaccine
 
 object PetRepository {
-    // Função para adicionar um lembrete a um pet
+    // função para adicionar um lembrete a um pet
     fun addReminderToPet(petId: Int, reminder: com.example.petapp.data.model.Reminder) {
         val petIndex = _petList.indexOfFirst { it.id == petId }
         if (petIndex != -1) {
             val pet = _petList[petIndex]
             pet.reminders.add(reminder)
-            // A linha abaixo é necessária para forçar a recomposição da UI
             _petList[petIndex] = pet.copy(reminders = pet.reminders.toMutableList())
         }
     }
-
-    // --- NOVA FUNÇÃO: Adiciona um novo pet à lista ---
+    // função de adicionar um novo pet, local por enquanto
     fun addPet(pet: Pet) {
         _petList.add(pet)
     }
-    // -----------------------------------------------
-
     private val _petList = mutableStateListOf(
         // Exemplo do mock de dados completo de cada Pet
-        //        Pet(
-        //            id = 0  -> temos o id que aumenta a cada pet adicionado
+        //        Pet( futuramente quero adicionar alguns filtros de busca
+        //            id = 0 -> temos o id que aumenta a cada pet adicionado
         //            name = "nome", -> nome do pet
-        //            specie = "espécie" -> espécie do pet(por enquanto apenas cachorro ou gato),
-        //            breed = "raça - sexo", -> raça e sexo do pet, futuramente vou separar o sexo para fazer alguns filtros de busca
-        //            birthDate = "00/00/0000", -> data de nascimento do pet, penso em adicionar uma cálculadora de idade na próxima evolução do código
+        //            specie = "espécie" -> espécie do pet(cachorro ou gato),
+        //            breed = "raça" -> raça do pet
+        //            sex = "sexo", -> sexo do pet
+        //            birthDate = "00/00/0000", -> data de nascimento do pet
         //            description = "descrição", -> descrição livre do seu pet, escolhido pelo dono
         //            imageRes = R.drawable.pet, -> imagem do pet
         //            vaccines = listOf( -> lista de vacinas registradas, penso em fazer um modelo que as vacina são adicionadas pela data, inicialmente em false e o usuário pode apertar o botão e trocar a vacina para true
@@ -46,8 +44,8 @@ object PetRepository {
             id = 1,
             name = "Snow",
             specie = "Cachorro",
-            breed = "Husky", // Separado
-            sex = "Macho", // Novo
+            breed = "Husky",
+            sex = "Macho",
             birthDate = "26/07/2017",
             description = "Extramamente carinhoso, calmo e adora longas sonecas",
             imageRes = R.drawable.snow,
@@ -62,14 +60,14 @@ object PetRepository {
                 Appointment("Consulta de rotina", "30/05/2025", "Avaliação geral de saúde."),
                 Appointment("Banho", "20/06/2025", "Manutenção mensal de higiene.")
             ),
-            isFavorite = true
+            isFavorite = false
         ),
         Pet(
             id = 2,
             name = "Salem",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Macho", // Novo
+            breed = "SRD",
+            sex = "Macho",
             birthDate = "18/09/2020",
             description = "Muito danado, adora carinho e sache, ama ficar de preguiça",
             imageRes = R.drawable.salem,
@@ -81,14 +79,14 @@ object PetRepository {
             appointments = listOf(
                 Appointment("Consulta de rotina", "02/04/2025", "Avaliação geral de saúde.")
             ),
-            isFavorite = true
+            isFavorite = false
         ),
         Pet(
             id = 3,
             name = "Kiara ",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Fêmea", // Novo
+            breed = "SRD",
+            sex = "Fêmea",
             birthDate = "18/09/2020",
             description = "Muito carinhosa e brincalhona, medrosa não gosta de pessoas de fora, ama sache e carinho",
             imageRes = R.drawable.kiara,
@@ -106,8 +104,8 @@ object PetRepository {
             id = 4,
             name = "Mimo",
             specie = "Cachorro",
-            breed = "Yorkshire", // Separado
-            sex = "Macho", // Novo
+            breed = "Yorkshire",
+            sex = "Macho",
             birthDate = "13/07/2013",
             description = "Muito gordo, adora comer e é extremamente sedentário. Precisa de cuidados especiais com a mobilidade.",
             imageRes = R.drawable.mimo,
@@ -127,11 +125,11 @@ object PetRepository {
             id = 5,
             name = "Peter Parker",
             specie = "Cachorro",
-            breed = "Shih Tzu", // Separado
-            sex = "Macho", // Novo
+            breed = "Shih Tzu",
+            sex = "Macho",
             birthDate = "03/01/2022",
             description = "Estupidamente ativo, adora comer qualquer tipo de lixo e correr. Precisa de atenção constante com a pele devido a coceiras frequentes.",
-            imageRes = R.drawable.parker, // Substituir pelo recurso correto da imagem
+            imageRes = R.drawable.parker,
             vaccines = listOf(
                 Vaccine("Antirrábica", "12/01/2025", true),
                 Vaccine("V8", "18/02/2024", true),
@@ -148,8 +146,8 @@ object PetRepository {
             id = 6,
             name = "Nala",
             specie = "Cachorro",
-            breed = "Misto - Vira-lata com Whippet", // Separado
-            sex = "Fêmea", // Novo
+            breed = "Misto - Vira-lata com Whippet",
+            sex = "Fêmea",
             birthDate = "25/12/2018",
             description = "Corre muito rápido e dorme muito. Não gosta muito de pessoas além da família, então não tomou as vacinas",
             imageRes = R.drawable.nala,
@@ -165,8 +163,8 @@ object PetRepository {
             id = 7,
             name = "Zayom",
             specie = "Cachorro",
-            breed = "Yorkshire", // Separado
-            sex = "Macho", // Novo
+            breed = "Yorkshire",
+            sex = "Macho",
             birthDate = "10/04/2019",
             description = "Pequeno, muito agitado, adora brincar e late para qualquer barulho. É extremamente leal e carinhoso.",
             imageRes = R.drawable.zayom,
@@ -182,8 +180,8 @@ object PetRepository {
             id = 8,
             name = "Nickinho",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Macho", // Novo
+            breed = "SRD",
+            sex = "Macho",
             birthDate = "15/06/2019",
             description = "Adora pular no colo dos outros pra pedir ração. Muito preguiçoso e vive deitado quase o dia todo.",
             imageRes = R.drawable.nickinho,
@@ -202,8 +200,8 @@ object PetRepository {
             id = 9,
             name = "Milly",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Fêmea", // Novo
+            breed = "SRD",
+            sex = "Fêmea",
             birthDate = "10/05/2013",
             description = "Gata anti-social, mas adora carinho quando quer. Solta muitos tufos de pelo, especialmente durante o verão.",
             imageRes = R.drawable.milly,
@@ -223,8 +221,8 @@ object PetRepository {
             id = 10,
             name = "Simba",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Macho", // Novo
+            breed = "SRD",
+            sex = "Macho",
             birthDate = "05/04/2016",
             description = "Ex-gatinho de rua, não sabe miar direito e é um pouco vesguinho. Muito carinhoso e adaptado à vida em casa.",
             imageRes = R.drawable.simba,
@@ -243,8 +241,8 @@ object PetRepository {
             id = 11,
             name = "Kiara",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Fêmea", // Novo
+            breed = "SRD",
+            sex = "Fêmea",
             birthDate = "10/09/2020",
             description = "Gatinha muito carinhosa, adora atentar a Milly, nunca cresce e tem o rabo macio.",
             imageRes = R.drawable.kiara2,
@@ -262,8 +260,8 @@ object PetRepository {
             id = 12,
             name = "Hiro",
             specie = "Cachorro",
-            breed = "Hovawart", // Separado
-            sex = "Macho", // Novo
+            breed = "Hovawart",
+            sex = "Macho",
             birthDate = "14/08/2020",
             description = "Cachorro extremamente leal, protetor e brincalhão. Adora correr no quintal, brincar de buscar bola e ficar perto dos tutores. Muito dócil com pessoas e outros animais.",
             imageRes = R.drawable.hiro,
@@ -283,8 +281,8 @@ object PetRepository {
             id = 13,
             name = "Sardinha Violência",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Fêmea", // Novo
+            breed = "SRD",
+            sex = "Fêmea",
             birthDate = "09/02/2021",
             description = "Gata independente, temperamental, mas muito carinhosa quando quer. Adora observar tudo de longe e dormir nas caixas mais improváveis da casa. Apesar do nome, só distribui violência quando é contrariada.",
             imageRes = R.drawable.sardinha,
@@ -303,8 +301,8 @@ object PetRepository {
             id = 14,
             name = "Motosserra Misamore",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Fêmea", // Novo
+            breed = "SRD",
+            sex = "Fêmea",
             birthDate = "15/08/2020",
             description = "Gatinha guerreira, muito carinhosa e brincalhona, mesmo sem um olhinho. Adora correr pela casa, derrubar objetos e caçar qualquer coisa que se mova. Seu ronronar parece uma motosserra de tão forte.",
             imageRes = R.drawable.motosserra,
@@ -324,8 +322,8 @@ object PetRepository {
             id = 15,
             name = "Toquinho Trompete Tracinha Jiji",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Macho", // Novo
+            breed = "SRD",
+            sex = "Macho",
             birthDate = "12/10/2021",
             description = "Gatinho preto cheio de personalidade. É curioso, adora subir nos móveis, derrubar tudo que vê e se esconder nos lugares mais improváveis. Extremamente carinhoso, ama dormir no colo e ronrona igual a um motorzinho.",
             imageRes = R.drawable.trompete,
@@ -345,8 +343,8 @@ object PetRepository {
             id = 16,
             name = "Nami",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Fêmea", // Novo
+            breed = "SRD",
+            sex = "Fêmea",
             birthDate = "11/02/2020",
             description = "Nami é uma gata gorda, extremamente preguiçosa e dona de uma rotina muito bem definida: ela dorme, come e dorme mais um pouco. Inclusive, quando dorme demais, fica tão cansada que precisa tirar outra soneca para se recuperar do cansaço de ter dormido tanto.",
             imageRes = R.drawable.nami,
@@ -366,8 +364,8 @@ object PetRepository {
             id = 17,
             name = "Moana",
             specie = "Cachorro",
-            breed = "Yorkshire", // Separado
-            sex = "Fêmea", // Novo
+            breed = "Yorkshire",
+            sex = "Fêmea",
             birthDate = "15/09/2018",
             description = "Moana é uma Yorkshire cheia de personalidade.É extremamente carinhosa, adora ficar no colo e ser mimada.",
             imageRes = R.drawable.moana,
@@ -387,8 +385,8 @@ object PetRepository {
             id = 18,
             name = "Leo",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Macho", // Novo
+            breed = "SRD",
+            sex = "Macho",
             birthDate = "12/03/2022",
             description = "Leo é um gato carinhoso, brincalhão e adora tomar banho de sol. Seus pelos claros e olhos atentos fazem dele um companheiro encantador.",
             imageRes = R.drawable.leo,
@@ -408,8 +406,8 @@ object PetRepository {
             id = 19,
             name = "Princesa",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Fêmea", // Novo
+            breed = "SRD",
+            sex = "Fêmea",
             birthDate = "12/03/2022",
             description = "Princesa é uma gata meiga, muito curiosa e adora ficar perto das pessoas. Seus pelos claros deixam sua beleza ainda mais evidente.",
             imageRes = R.drawable.princesa,
@@ -429,8 +427,8 @@ object PetRepository {
             id = 20,
             name = "Lili",
             specie = "Gato",
-            breed = "SRD", // Separado
-            sex = "Fêmea", // Novo
+            breed = "SRD",
+            sex = "Fêmea",
             birthDate = "08/07/2021",
             description = "Lili é uma gatinha preta muito esperta que aprendeu a usar o vaso sanitário para suas necessidades. Super inteligente e independente!",
             imageRes = R.drawable.lili,
@@ -448,26 +446,20 @@ object PetRepository {
         ),
     )
     val petList: List<Pet> get() = _petList
-    // função que alterna o favorito
-    fun toggleFavorite(petId: Int) {
+    fun toggleFavorite(petId: Int) { // função de switch de favorito
         val index = _petList.indexOfFirst { it.id == petId }
         if (index != -1) {
             val pet = _petList[index]
             _petList[index] = pet.copy(isFavorite = !pet.isFavorite)
         }
     }
-
-    // retorna a lista dos pets favoritados
-    fun getFavorites(): List<Pet> {
+    fun getFavorites(): List<Pet> { // retorna os favoritos
         return _petList.filter { it.isFavorite }
     }
-
-    // função que busca o pet pelo ID
-    fun getPetById(petId: Int): Pet? {
+    fun getPetById(petId: Int): Pet? { // retorna o pet pelo id
         return _petList.find { it.id == petId }
     }
-    // funçaõ de limpar todos os favoritos
-    fun clearFavorites() {
+    fun clearFavorites() { // limpa os favoritos
         _petList.forEachIndexed { index, pet ->
             if (pet.isFavorite) {
                 _petList[index] = pet.copy(isFavorite = false)

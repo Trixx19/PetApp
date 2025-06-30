@@ -1,4 +1,4 @@
-// app/src/main/java/com/example/petapp/ui/screens/AddReminderScreen.kt
+// TELA DE LEMBRETE NOVO
 package com.example.petapp.ui.screens
 
 import android.app.DatePickerDialog
@@ -32,22 +32,16 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
     var title by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var selectedTime by remember { mutableStateOf(LocalTime.now()) }
-    var priority by remember { mutableStateOf(Priority.LOW) } // Padrão agora é LOW
+    var priority by remember { mutableStateOf(Priority.MEDIUM) } // médio é o padrao
     var showError by remember { mutableStateOf(false) }
-
     val context = LocalContext.current
     val scheduler = AlarmScheduler(context)
     val coroutineScope = rememberCoroutineScope()
-
     val settingsDataStore = SettingsDataStore(context)
     val notificationsEnabled by settingsDataStore.notificationsEnabled.collectAsState(initial = true)
-
-    // Formatadores para exibir a data e hora
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-
-    // Diálogos para seleção de data e hora
-    val datePickerDialog = DatePickerDialog(
+    val datePickerDialog = DatePickerDialog( // dialog de data
         context,
         { _, year, month, dayOfMonth ->
             selectedDate = LocalDate.of(year, month + 1, dayOfMonth)
@@ -56,17 +50,15 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
         selectedDate.monthValue - 1,
         selectedDate.dayOfMonth
     )
-
-    val timePickerDialog = TimePickerDialog(
+    val timePickerDialog = TimePickerDialog( // dialog de hora
         context,
         { _, hour, minute ->
             selectedTime = LocalTime.of(hour, minute)
         },
         selectedTime.hour,
         selectedTime.minute,
-        true // Formato de 24 horas
+        true
     )
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -96,10 +88,7 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
             if (showError && title.isBlank()) {
                 Text("O título é obrigatório", color = MaterialTheme.colorScheme.error)
             }
-
             Spacer(Modifier.height(16.dp))
-
-            // Seletores de Data e Hora
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
@@ -111,38 +100,28 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
                     Text("Hora: ${selectedTime.format(timeFormatter)}")
                 }
             }
-
             Spacer(Modifier.height(24.dp))
-
-            // Seletor de Prioridade (agora com três opções)
             Text("Prioridade", style = MaterialTheme.typography.titleMedium)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                // Opção Alta
-                RadioButton(
-                    selected = priority == Priority.HIGH,
-                    onClick = { priority = Priority.HIGH }
+            Row(verticalAlignment = Alignment.CenterVertically) { // seletor de prioridade
+                RadioButton( // baixa prioridade
+                    selected = priority == Priority.LOW,
+                    onClick = { priority = Priority.LOW }
                 )
-                Text("Alta", Modifier.clickable { priority = Priority.HIGH })
+                Text("Baixa", Modifier.clickable { priority = Priority.LOW })
                 Spacer(Modifier.width(16.dp))
-
-                // Opção Média
-                RadioButton(
+                RadioButton( // média prioridade
                     selected = priority == Priority.MEDIUM,
                     onClick = { priority = Priority.MEDIUM }
                 )
                 Text("Média", Modifier.clickable { priority = Priority.MEDIUM })
                 Spacer(Modifier.width(16.dp))
-
-                // Opção Baixa
-                RadioButton(
-                    selected = priority == Priority.LOW,
-                    onClick = { priority = Priority.LOW }
+                RadioButton( // alta prioridade
+                    selected = priority == Priority.HIGH,
+                    onClick = { priority = Priority.HIGH }
                 )
-                Text("Baixa", Modifier.clickable { priority = Priority.LOW })
+                Text("Alta", Modifier.clickable { priority = Priority.HIGH })
             }
-
             Spacer(Modifier.height(32.dp))
-
             Button(
                 onClick = {
                     coroutineScope.launch {
@@ -150,7 +129,6 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
                             showError = true
                             return@launch
                         }
-
                         if (notificationsEnabled) {
                             val dateTime = selectedDate.atTime(selectedTime)
                             val newReminder = Reminder(
@@ -158,10 +136,8 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
                                 dateTime = dateTime,
                                 priority = priority
                             )
-
                             PetRepository.addReminderToPet(petId, newReminder)
-
-                            val channelId = when (priority) { // Lógica para selecionar o canal correto
+                            val channelId = when (priority) {
                                 Priority.HIGH -> NotificationHelper.HIGH_PRIORITY_CHANNEL_ID
                                 Priority.MEDIUM -> NotificationHelper.MEDIUM_PRIORITY_CHANNEL_ID
                                 Priority.LOW -> NotificationHelper.LOW_PRIORITY_CHANNEL_ID
@@ -172,7 +148,6 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
                                 message = title,
                                 channelId = channelId
                             )
-
                             Toast.makeText(context, "Lembrete salvo e agendado!", Toast.LENGTH_SHORT).show()
                             navController.popBackStack()
                         } else {

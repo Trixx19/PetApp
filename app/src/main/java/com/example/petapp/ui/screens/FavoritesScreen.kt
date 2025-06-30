@@ -1,3 +1,4 @@
+// TELA DE PET FAVORITOS
 package com.example.petapp.ui.screens
 
 import androidx.compose.foundation.layout.*
@@ -10,17 +11,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.example.petapp.data.PetRepository
-import androidx.compose.animation.AnimatedVisibility // Adicione
-import androidx.compose.animation.fadeIn // Adicione
-import androidx.compose.animation.slideInVertically // Adicione
-import androidx.compose.animation.ExperimentalAnimationApi // Adicione
-import androidx.compose.ui.graphics.vector.ImageVector // Adicione (necessário para Icons.Default)
-import androidx.compose.material.icons.filled.SentimentDissatisfied // Exemplo de ícone, você pode usar outro
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.material.icons.filled.SentimentDissatisfied
 import androidx.compose.ui.unit.dp
 
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class) // Adicione ExperimentalAnimationApi
-@Composable // tela que vai exibir os pets marcados como "favorito"
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalAnimationApi::class)
+@Composable // tela que vai exibir os pets favoritos
 fun FavoritesScreen(navController: NavController) {
     val favorites by androidx.compose.runtime.remember { // filtra a lista dos pets procurando os que foram marcados
         androidx.compose.runtime.derivedStateOf {
@@ -56,7 +55,7 @@ fun FavoritesScreen(navController: NavController) {
                 AnimatedVisibility(
                     visible = true, // Sempre visível quando a lista está vazia
                     enter = fadeIn(animationSpec = androidx.compose.animation.core.tween(durationMillis = 500)) + slideInVertically(
-                        initialOffsetY = { fullHeight -> fullHeight / 2 }, // Começa do meio para baixo
+                        initialOffsetY = { fullHeight -> fullHeight / 2 },
                         animationSpec = androidx.compose.animation.core.tween(durationMillis = 500)
                     )
                 ) {

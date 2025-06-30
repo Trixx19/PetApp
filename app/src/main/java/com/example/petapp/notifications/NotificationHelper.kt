@@ -1,27 +1,22 @@
-// app/src/main/java/com/example/petapp/notifications/NotificationHelper.kt
+// CLASSE PARA CRIAR AS NOTIFICAÇÕES
 package com.example.petapp.notifications
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.media.AudioAttributes
-import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.example.petapp.R // Para acessar os recursos drawable
+import com.example.petapp.R
 
 class NotificationHelper(private val context: Context) {
-
-    private val notificationManager =
-        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
+    private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     companion object {
-        const val HIGH_PRIORITY_CHANNEL_ID = "high_priority_channel"
-        const val MEDIUM_PRIORITY_CHANNEL_ID = "medium_priority_channel"
-        const val LOW_PRIORITY_CHANNEL_ID = "low_priority_channel"
+        const val HIGH_PRIORITY_CHANNEL_ID = "high_priority_channel" // notificação de alta prioridade aparece na tela, vibra e produz som
+        const val MEDIUM_PRIORITY_CHANNEL_ID = "medium_priority_channel" // notificação de média prioridade vibra e produz som
+        const val LOW_PRIORITY_CHANNEL_ID = "low_priority_channel" // notificação de baixa prioridade apenas vibra
     }
-
     fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val audioAttributes = AudioAttributes.Builder()
@@ -34,14 +29,12 @@ class NotificationHelper(private val context: Context) {
                 "Lembretes Urgentes",
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notificações para vacinas, compromissos críticos e lembretes urgentes."
+                description = "Notificações para lembretes críticos."
                 enableLights(true)
                 lightColor = context.getColor(R.color.purple_500)
                 enableVibration(true)
-                // Use seu som personalizado aqui, por exemplo:
-                // setSound(Uri.parse("android.resource://" + context.packageName + "/" + R.raw.squeak), audioAttributes)
-                // Ou o som padrão do sistema:
-                setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), audioAttributes)
+                // som personalizado de notificação
+                setSound(Uri.parse("android.resource://" + context.packageName + "/" + R.raw.squeak), audioAttributes)
             }
             notificationManager.createNotificationChannel(highPriorityChannel)
 
@@ -50,8 +43,9 @@ class NotificationHelper(private val context: Context) {
                 "Lembretes Comuns",
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
-                description = "Notificações para banhos, passeios e outras tarefas gerais."
+                description = "Notificações lembretes gerais"
                 enableVibration(true)
+                setSound(Uri.parse("android.resource://" + context.packageName + "/" + R.raw.squeak), audioAttributes)
             }
             notificationManager.createNotificationChannel(mediumPriorityChannel)
 
@@ -60,15 +54,14 @@ class NotificationHelper(private val context: Context) {
                 "Lembretes Opcionais",
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Notificações para informações menos urgentes que não precisam de interrupção."
+                description = "Notificações para informações menos urgentes."
                 setSound(null, null)
-                enableVibration(false)
+                enableVibration(true)
             }
             notificationManager.createNotificationChannel(lowPriorityChannel)
         }
     }
-
-    // Constrói e exibe a notificação
+    // constroi e envia a notificação
     fun sendNotification(
         channelId: String,
         title: String,
@@ -76,14 +69,8 @@ class NotificationHelper(private val context: Context) {
         notificationId: Int
     ) {
         val builder = NotificationCompat.Builder(context, channelId)
-            // --- ALTERAÇÃO AQUI: Use um ícone mais adequado, por exemplo R.drawable.ic_notification_bell ---
-            // Certifique-se que o ícone exista na pasta res/drawable
-            .setSmallIcon(R.drawable.notificationicon) // <--- Mude para o ícone desejado
-            // Se você não tiver um ícone específico, pode usar R.drawable.icon (o ícone do seu app)
-            // ou R.drawable.ic_launcher_foreground para um ícone genérico.
-            // .setSmallIcon(R.drawable.icon) // Exemplo: ícone do app
-            // .setSmallIcon(R.drawable.ic_launcher_foreground) // O ícone que estava antes
-            // --- FIM DA ALTERAÇÃO ---
+            // icone específico para a notificação
+            .setSmallIcon(R.drawable.notificationicon)
             .setContentTitle(title)
             .setContentText(contentText)
             .setPriority(
@@ -92,9 +79,7 @@ class NotificationHelper(private val context: Context) {
                     MEDIUM_PRIORITY_CHANNEL_ID -> NotificationCompat.PRIORITY_DEFAULT
                     else -> NotificationCompat.PRIORITY_LOW
                 }
-            )
-            .setAutoCancel(true)
-
+            ).setAutoCancel(true)
         notificationManager.notify(notificationId, builder.build())
     }
 }

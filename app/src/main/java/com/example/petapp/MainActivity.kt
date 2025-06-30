@@ -1,4 +1,3 @@
-// app/src/main/java/com/example/petapp/MainActivity.kt
 package com.example.petapp
 
 import android.Manifest
@@ -23,25 +22,16 @@ import com.example.petapp.ui.navigation.AppNavHost
 import com.example.petapp.ui.theme.PetAppTheme
 
 class MainActivity : ComponentActivity() {
-
-    // Lida com o pedido de permissão de notificação
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        // Aqui você pode adicionar lógica caso a permissão seja concedida ou negada
-    }
-
-    private fun askNotificationPermission() {
-        // Permissão para Notificações (Android 13+)
+    ) { isGranted: Boolean -> }
+    private fun askNotificationPermission() { // permissões para rodar as notificações sem problemas, rezando pra funcionar em todos os dispositivos
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
-                PackageManager.PERMISSION_GRANTED
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
             ) {
                 requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }
-
-        // Permissão para Alarmes Exatos (Android 12+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
             if (!alarmManager.canScheduleExactAlarms()) {
@@ -53,23 +43,14 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Cria os canais de notificação assim que o app é iniciado
         val notificationHelper = NotificationHelper(this)
         notificationHelper.createNotificationChannels()
-
-        // Pede a permissão
         askNotificationPermission()
-
         setContent {
-            // Instancia o DataStore
             val settingsDataStore = SettingsDataStore(applicationContext)
-            // Coleta o estado do modo escuro do DataStore
-            val isDarkTheme by settingsDataStore.darkModeEnabled.collectAsState(initial = false) // Lendo do DataStore
-
+            val isDarkTheme by settingsDataStore.darkModeEnabled.collectAsState(initial = false)
             PetAppTheme(darkTheme = isDarkTheme) {
                 AppNavHost()
             }

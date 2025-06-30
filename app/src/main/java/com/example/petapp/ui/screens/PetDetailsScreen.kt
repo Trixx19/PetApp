@@ -1,4 +1,4 @@
-// app/src/main/java/com/example/petapp/ui/screens/PetDetailsScreen.kt
+// TELA DOS DETALHES DOS PETS
 package com.example.petapp.ui.screens
 
 import android.widget.Toast
@@ -25,7 +25,7 @@ import com.example.petapp.data.PetRepository
 import com.example.petapp.data.model.Priority
 import com.example.petapp.data.model.Reminder
 import com.example.petapp.ui.components.PlaySoundEffect
-import com.example.petapp.ui.theme.SuccessGreen
+import com.example.petapp.ui.theme.*
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
 import androidx.compose.animation.core.animateFloatAsState
@@ -38,9 +38,8 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
     var pet by remember { mutableStateOf(PetRepository.getPetById(petId)) }
     var isLoading by remember { mutableStateOf(true) }
     val context = LocalContext.current
-
     var playSound by remember { mutableStateOf(false) }
-    val soundResId = when (pet?.specie?.lowercase()) {
+    val soundResId = when (pet?.specie?.lowercase()) { // toca som de acordo com a espécie
         "cachorro" -> R.raw.bark
         "gato" -> R.raw.meow
         else -> null
@@ -81,7 +80,7 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                         IconButton(
                             onClick = {
                                 PetRepository.toggleFavorite(petId)
-                                pet = PetRepository.getPetById(petId) // Reatualiza o objeto pet localmente
+                                pet = PetRepository.getPetById(petId)
                                 favoriteScale = 1.2f
                             },
                             modifier = Modifier.scale(animatedFavoriteScale)
@@ -108,7 +107,7 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator() // simulação de carregamento
             }
         } else if (pet != null) {
             Column(
@@ -119,7 +118,6 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Informações do Pet
                 Image(
                     painter = painterResource(id = pet!!.imageRes),
                     contentDescription = "Foto do pet",
@@ -130,15 +128,14 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(pet!!.name, style = MaterialTheme.typography.headlineSmall)
                 Text(pet!!.specie, style = MaterialTheme.typography.bodyLarge)
-                Text(pet!!.breed, style = MaterialTheme.typography.bodyLarge) // Exibe a raça
-                Text(pet!!.sex, style = MaterialTheme.typography.bodyLarge) // Exibe o sexo
+                Text(pet!!.breed, style = MaterialTheme.typography.bodyLarge)
+                Text(pet!!.sex, style = MaterialTheme.typography.bodyLarge)
                 Text(pet!!.birthDate, style = MaterialTheme.typography.bodyLarge)
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(pet!!.description, style = MaterialTheme.typography.bodyMedium)
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider()
-
-                // Seção de Vacinas (Versão original, sem o sino)
+                // vacinas
                 Text(
                     "Vacinas",
                     style = MaterialTheme.typography.titleMedium,
@@ -168,7 +165,7 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider()
 
-                // Seção de Compromissos (Versão original, sem o sino)
+                // comprimissos
                 Text(
                     "Compromissos",
                     style = MaterialTheme.typography.titleMedium,
@@ -195,19 +192,17 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                 Spacer(modifier = Modifier.height(16.dp))
                 Divider()
 
-                // Nova Seção de Lembretes Agendados
+                // novos lembretes
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 ) {
-                    // Título centralizado
                     Text(
                         text = "Lembretes",
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.align(Alignment.Center)
                     )
-                    // Botão alinhado à direita
                     IconButton(
                         onClick = { navController.navigate("add_reminder/${pet!!.id}") },
                         modifier = Modifier.align(Alignment.CenterEnd)
@@ -235,8 +230,7 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
         }
     }
 }
-
-// Card para exibir os lembretes criados
+//exibindo os lembretes criados
 @Composable
 fun ReminderCard(reminder: Reminder) {
     val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
@@ -245,17 +239,17 @@ fun ReminderCard(reminder: Reminder) {
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = when (reminder.priority) { // Lógica de cores atualizada
-                Priority.HIGH -> MaterialTheme.colorScheme.tertiaryContainer
-                Priority.MEDIUM -> MaterialTheme.colorScheme.primaryContainer // Nova cor para prioridade média
-                Priority.LOW -> MaterialTheme.colorScheme.secondaryContainer
+            containerColor = when (reminder.priority) {
+                Priority.HIGH -> ReminderRed
+                Priority.MEDIUM -> ReminderYellow
+                Priority.LOW -> ReminderGreen
             }
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(reminder.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
             Text("Agendado para: ${reminder.dateTime.format(formatter)}", style = MaterialTheme.typography.bodyMedium)
-            Text("Prioridade: ${when (reminder.priority) { // Exibe o texto correto da prioridade
+            Text("Prioridade: ${when (reminder.priority) {
                 Priority.HIGH -> "Alta"
                 Priority.MEDIUM -> "Média"
                 Priority.LOW -> "Baixa"

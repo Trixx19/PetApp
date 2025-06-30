@@ -1,3 +1,4 @@
+// CLASSE PARA PREPARAR AS NOTIFICAÇÕES
 package com.example.petapp.notifications
 
 import android.app.AlarmManager
@@ -30,8 +31,6 @@ class AlarmScheduler(private val context: Context) {
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
-        // Converte nosso LocalDateTime para milissegundos
         val triggerAtMillis = time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
         // Agenda o alarme

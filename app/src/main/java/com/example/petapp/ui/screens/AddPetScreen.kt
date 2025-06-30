@@ -1,4 +1,4 @@
-// app/src/main/java/com/example/petapp/ui/screens/AddPetScreen.kt
+// TELA DE ADICIONAR PET NOVO
 package com.example.petapp.ui.screens
 
 import android.app.DatePickerDialog
@@ -22,7 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.petapp.R // Para acessar os drawables
+import com.example.petapp.R
 import com.example.petapp.data.PetRepository
 import com.example.petapp.data.model.Pet
 import java.time.LocalDate
@@ -32,22 +32,15 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun AddPetScreen(navController: NavController) {
     var name by remember { mutableStateOf("") }
-    var specie by remember { mutableStateOf("Cachorro") } // Espécie padrão
+    var specie by remember { mutableStateOf("Cachorro") } // padrão é cachorro
     var breed by remember { mutableStateOf("") }
-    var sex by remember { mutableStateOf("Macho") } // Sexo padrão
-    // --- NOVO: Captura a data inicial para comparação ---
+    var sex by remember { mutableStateOf("") }
     val initialBirthDate = remember { LocalDate.now() }
     var birthDate by remember { mutableStateOf(initialBirthDate) }
-    // --- FIM NOVO ---
     var description by remember { mutableStateOf("") }
-    var selectedImageRes by remember { mutableStateOf(R.drawable.icon) } // Imagem padrão
-
+    var selectedImageRes by remember { mutableStateOf(R.drawable.icon) } // imagem padrão é o icone do app
     val context = LocalContext.current
-
-    // Formatador para exibir a data
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-
-    // Diálogo para seleção de data
     val datePickerDialog = DatePickerDialog(
         context,
         { _, year, month, dayOfMonth ->
@@ -57,27 +50,18 @@ fun AddPetScreen(navController: NavController) {
         birthDate.monthValue - 1,
         birthDate.dayOfMonth
     )
-
-    // --- Início do bloco de cálculo do progresso (NOVA LÓGICA) ---
+    // progress bar do novo pet
     val progress by remember {
         derivedStateOf {
             var completedFields = 0
-            // Agora, consideramos apenas os campos que o usuário precisa preencher
-            // Nome, Raça, Descrição, Data de Nascimento (se alterada)
             val totalFields = 4
-
             if (name.isNotBlank()) completedFields++
             if (breed.isNotBlank()) completedFields++
             if (description.isNotBlank()) completedFields++
-            // Conta a data apenas se ela for diferente da data inicial carregada
             if (birthDate != initialBirthDate) completedFields++
-
-            // Garante que o progresso não exceda 1.0f (100%) e seja no mínimo 0.0f
             (completedFields.toFloat() / totalFields).coerceIn(0f, 1f)
         }
     }
-    // --- Fim do bloco de cálculo do progresso (NOVA LÓGICA) ---
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -93,13 +77,12 @@ fun AddPetScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(horizontal = 16.dp) // Mantém padding horizontal
+                .padding(horizontal = 16.dp)
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // --- LinearProgressIndicator foi mantido no topo da Column ---
             LinearProgressIndicator(
                 progress = progress,
                 modifier = Modifier
@@ -108,20 +91,16 @@ fun AddPetScreen(navController: NavController) {
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.primaryContainer
             )
-
-            Spacer(modifier = Modifier.height(16.dp)) // Espaçamento abaixo da barra
-
-            // Seleção de Imagem (Ícone de Gato/Cachorro)
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text("Escolha o ícone do pet:", style = MaterialTheme.typography.titleMedium)
+            ) { // icone do pet
+                Text("Escolha a espécie do pet:", style = MaterialTheme.typography.titleMedium)
                 Spacer(Modifier.width(16.dp))
-
                 Image(
-                    painter = painterResource(id = R.drawable.icondog), // Ícone de cachorro
+                    painter = painterResource(id = R.drawable.icondog), // cachorro
                     contentDescription = "Ícone de Cachorro",
                     modifier = Modifier
                         .size(80.dp)
@@ -133,12 +112,12 @@ fun AddPetScreen(navController: NavController) {
                         )
                         .clickable {
                             selectedImageRes = R.drawable.icondog
-                            specie = "Cachorro" // Atualiza a espécie baseada na imagem
+                            specie = "Cachorro" // atualiza a especie pela imagem
                         }
                 )
                 Spacer(Modifier.width(8.dp))
                 Image(
-                    painter = painterResource(id = R.drawable.iconcat), // Ícone de gato
+                    painter = painterResource(id = R.drawable.iconcat), // gato
                     contentDescription = "Ícone de Gato",
                     modifier = Modifier
                         .size(80.dp)
@@ -150,13 +129,12 @@ fun AddPetScreen(navController: NavController) {
                         )
                         .clickable {
                             selectedImageRes = R.drawable.iconcat
-                            specie = "Gato" // Atualiza a espécie baseada na imagem
+                            specie = "Gato" // atualiza a especie pela imagem
                         }
                 )
             }
             Spacer(Modifier.height(8.dp))
-
-            // Campo Nome
+            // nome
             OutlinedTextField(
                 value = name,
                 onValueChange = { name = it },
@@ -164,8 +142,7 @@ fun AddPetScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
-
-            // Campo Raça
+            // raça
             OutlinedTextField(
                 value = breed,
                 onValueChange = { breed = it },
@@ -173,8 +150,7 @@ fun AddPetScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
-
-            // Seleção de Sexo (Macho/Fêmea)
+            // select do sexo
             Text("Sexo", style = MaterialTheme.typography.titleMedium)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -190,13 +166,11 @@ fun AddPetScreen(navController: NavController) {
                     Text("Fêmea", Modifier.clickable { sex = "Fêmea" })
                 }
             }
-
-            // Campo Data de Nascimento
+            // data de nascimento
             Button(onClick = { datePickerDialog.show() }) {
                 Text("Data de Nascimento: ${birthDate.format(dateFormatter)}")
             }
-
-            // Campo Descrição
+            // descrição
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
@@ -204,17 +178,14 @@ fun AddPetScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
-
             Spacer(modifier = Modifier.height(16.dp))
-
-            // Botão Salvar Pet
             Button(
                 onClick = {
                     if (name.isBlank() || breed.isBlank()) {
-                        Toast.makeText(context, "Nome e Raça são obrigatórios!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Nome e Raça são obrigatórios!", Toast.LENGTH_SHORT).show() // toast de erro
                     } else {
                         val newPet = Pet(
-                            id = PetRepository.petList.size + 1, // ID simples (pode ser melhorado para algo único)
+                            id = PetRepository.petList.size + 1, // lista atual + 1, id simples por enquanto
                             name = name,
                             specie = specie,
                             breed = breed,
@@ -227,7 +198,7 @@ fun AddPetScreen(navController: NavController) {
                             isFavorite = false,
                             reminders = mutableListOf()
                         )
-                        PetRepository.addPet(newPet) // Chamada para adicionar o pet
+                        PetRepository.addPet(newPet)
                         Toast.makeText(context, "Pet salvo com sucesso!", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     }

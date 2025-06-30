@@ -1,4 +1,4 @@
-// Mantenha seu Type.kt assim:
+// CLASSE DE TIPOGRAFIA
 package com.example.petapp.ui.theme
 
 import androidx.compose.material3.Typography

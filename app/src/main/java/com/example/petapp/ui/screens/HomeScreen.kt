@@ -1,3 +1,4 @@
+// TELA PRINCIPAL / INÍCIO
 package com.example.petapp.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
@@ -24,25 +25,22 @@ import androidx.navigation.NavController
 import com.example.petapp.R
 import com.example.petapp.data.PetRepository
 import com.example.petapp.data.model.Pet
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
-
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // --- CORREÇÃO AQUI ---
-                        // Trocamos o R.mipmap.ic_launcher_round por um drawable simples
                         Image(
-                            painter = painterResource(id = R.drawable.icon), // Use um ícone PNG da sua pasta drawable
+                            painter = painterResource(id = R.drawable.icon),
                             contentDescription = "Ícone do Pet App",
                             modifier = Modifier.size(32.dp)
                         )
-                        // ---------------------
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Pet App")
                     }
@@ -98,7 +96,6 @@ fun HomeScreen(navController: NavController) {
                     unfocusedLabelColor = Color.Gray
                 )
             )
-
             val filteredPets = PetRepository.petList.filter {
                 it.name.contains(searchQuery, ignoreCase = true)
             }
@@ -109,8 +106,6 @@ fun HomeScreen(navController: NavController) {
         }
     }
 }
-
-
 @Composable
 fun PetList(pets: List<Pet>, navController: NavController, modifier: Modifier = Modifier) {
     LazyColumn(
@@ -125,7 +120,6 @@ fun PetList(pets: List<Pet>, navController: NavController, modifier: Modifier = 
         }
     }
 }
-
 @Composable
 fun PetCard(pet: Pet, onClick: () -> Unit) {
     var scale by remember { mutableStateOf(1f) }
@@ -134,7 +128,6 @@ fun PetCard(pet: Pet, onClick: () -> Unit) {
         animationSpec = tween(durationMillis = 200),
         label = "FavoriteIconScale"
     )
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -248,18 +241,85 @@ fun MoreOptionsMenu(navController: NavController) {
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
     NavigationBar {
-        NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate("home") },
-            icon = { Icon(Icons.Default.Home, contentDescription = "Início") },
-            label = { Text("Início") }
+        val homeIconScale by animateFloatAsState( // animação de "pulsar"
+            targetValue = if (currentRoute == "home") 1.2f else 1f,
+            animationSpec = tween(durationMillis = 200),
+            label = "HomeIconScale"
         )
         NavigationBarItem(
-            selected = false,
-            onClick = { navController.navigate("favorites") },
-            icon = { Icon(Icons.Default.Favorite, contentDescription = "Favoritos") },
+            selected = currentRoute == "home",
+            onClick = {
+                if (currentRoute != "home") {
+                    navController.navigate("home") {
+                        popUpTo("home") { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Home,
+                    contentDescription = "Início",
+                    modifier = Modifier.scale(homeIconScale)
+                )
+            },
+            label = { Text("Início") }
+        )
+        // Item "Favoritos"
+        val favoritesIconScale by animateFloatAsState(
+            targetValue = if (currentRoute == "favorites") 1.2f else 1f,
+            animationSpec = tween(durationMillis = 200),
+            label = "FavoritesIconScale"
+        )
+        NavigationBarItem(
+            selected = currentRoute == "favorites",
+            onClick = {
+                if (currentRoute != "favorites") {
+                    navController.navigate("favorites") {
+                        popUpTo("home") { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Favorite,
+                    contentDescription = "Favoritos",
+                    modifier = Modifier.scale(favoritesIconScale)
+                )
+            },
             label = { Text("Favoritos") }
+        )
+        // Item "Informações"
+        val infoIconScale by animateFloatAsState(
+            targetValue = if (currentRoute == "information") 1.3f else 1f, // Escala para 1.2f quando selecionado
+            animationSpec = tween(durationMillis = 300),
+            label = "InfoIconScale"
+        )
+        NavigationBarItem(
+            selected = currentRoute == "information",
+            onClick = {
+                if (currentRoute != "information") {
+                    navController.navigate("information") {
+                        popUpTo("home") { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+            },
+            icon = {
+                Icon(
+                    imageVector = Icons.Default.Description,
+                    contentDescription = "Informações",
+                    modifier = Modifier.scale(infoIconScale) // Aplica a animação de escala
+                )
+            },
+            label = { Text("Info") }
         )
     }
 }

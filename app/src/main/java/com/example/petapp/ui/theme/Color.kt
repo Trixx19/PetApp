@@ -1,3 +1,4 @@
+// CLASSE DE CORES
 package com.example.petapp.ui.theme
 import androidx.compose.ui.graphics.Color
 
@@ -24,3 +25,8 @@ val DarkOnPrimary = Color(0xFF000000)
 val DarkOnSecondary = Color(0xFF000000)
 val DarkOnBackground = Color(0xFFFFFFFF)
 val DarkOnSurface = Color(0xFFFFFFFF)
+
+// cores dos lembretes
+val ReminderGreen = Color(0xFF2E7D32)
+val ReminderYellow = Color(0xFFFFEB3B)
+val ReminderRed = Color(0xFFC62828)
