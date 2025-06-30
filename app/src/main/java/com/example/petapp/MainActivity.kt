@@ -2,7 +2,7 @@ package com.example.petapp
 
 import android.Manifest
 import android.app.AlarmManager
-import android.content.Intent // <<<--- A LINHA QUE FALTAVA
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -10,26 +10,23 @@ import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat
+import com.example.petapp.data.SettingsDataStore
 import com.example.petapp.notifications.NotificationHelper
 import com.example.petapp.ui.navigation.AppNavHost
+import com.example.petapp.ui.theme.ColorPalette
 import com.example.petapp.ui.theme.PetAppTheme
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
 
-    // Lida com o pedido de permissão de notificação
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        // Aqui você pode adicionar lógica caso a permissão seja concedida ou negada
-    }
+    ) { /* Não é necessário fazer nada aqui por enquanto */ }
 
     private fun askNotificationPermission() {
-        // Permissão para Notificações (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) !=
                 PackageManager.PERMISSION_GRANTED
@@ -38,7 +35,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // Permissão para Alarmes Exatos (Android 12+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
             if (!alarmManager.canScheduleExactAlarms()) {
@@ -54,19 +50,43 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Cria os canais de notificação assim que o app é iniciado
         val notificationHelper = NotificationHelper(this)
         notificationHelper.createNotificationChannels()
-
-        // Pede a permissão
         askNotificationPermission()
 
         setContent {
-            var isDarkTheme by remember { mutableStateOf(false) } // estado que controla o tema (local)
-            PetAppTheme(darkTheme = isDarkTheme) {
-                AppNavHost( // informa o tema atual e troca para o outro
+            val settingsDataStore = remember { SettingsDataStore(this) }
+            var isDarkTheme by remember { mutableStateOf(false) }
+
+            // O estado da paleta de cores começa com o tema padrão.
+            var currentPalette by remember { mutableStateOf(ColorPalette.DEFAULT) }
+
+            // Efeito que lê a preferência guardada quando a app abre.
+            LaunchedEffect(key1 = settingsDataStore) {
+                launch {
+                    val savedPaletteName = settingsDataStore.themePalette.first()
+                    // Tenta converter o nome guardado para uma paleta, se falhar, usa o padrão.
+                    currentPalette = try {
+                        ColorPalette.valueOf(savedPaletteName)
+                    } catch (e: IllegalArgumentException) {
+                        ColorPalette.DEFAULT
+                    }
+                }
+            }
+
+            // Aplica o tema com base nos estados atuais.
+            PetAppTheme(
+                darkTheme = isDarkTheme,
+                colorPalette = currentPalette
+            ) {
+                // Passa os estados e as funções para o NavHost controlar a navegação e as mudanças de tema.
+                AppNavHost(
                     isDarkTheme = isDarkTheme,
-                    onThemeChange = { isDarkTheme = it }
+                    onThemeChange = { isDarkTheme = it },
+                    currentPalette = currentPalette,
+                    onPaletteChange = { newPalette ->
+                        currentPalette = newPalette
+                    }
                 )
             }
         }
