@@ -1,4 +1,4 @@
-// TELA PRINCIPAL / INÍCIO
+// TELA PRINCIPAL / INÍCIO (Comentário do seu colega)
 package com.example.petapp.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
@@ -22,22 +22,24 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.example.petapp.R
 import com.example.petapp.data.PetRepository
 import com.example.petapp.data.model.Pet
-import androidx.navigation.compose.currentBackStackEntryAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        // Usando o seu ícone preferido
                         Image(
-                            painter = painterResource(id = R.drawable.icon),
+                            painter = painterResource(id = R.drawable.mineicon),
                             contentDescription = "Ícone do Pet App",
                             modifier = Modifier.size(32.dp)
                         )
@@ -50,6 +52,7 @@ fun HomeScreen(navController: NavController) {
                 }
             )
         },
+        // Usando a BottomNavigationBar do seu colega
         bottomBar = {
             BottomNavigationBar(navController)
         },
@@ -64,6 +67,7 @@ fun HomeScreen(navController: NavController) {
                 .padding(padding)
                 .fillMaxSize()
         ) {
+            // Usando a sua barra de pesquisa estilizada
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
@@ -96,6 +100,7 @@ fun HomeScreen(navController: NavController) {
                     unfocusedLabelColor = Color.Gray
                 )
             )
+
             val filteredPets = PetRepository.petList.filter {
                 it.name.contains(searchQuery, ignoreCase = true)
             }
@@ -202,49 +207,51 @@ fun PetCard(pet: Pet, onClick: () -> Unit) {
     }
 }
 
+// Usando a versão corrigida do MoreOptionsMenu
 @Composable
 fun MoreOptionsMenu(navController: NavController) {
     var expanded by remember { mutableStateOf(false) }
-    IconButton(onClick = { expanded = true }) {
+    IconButton(onClick = { expanded = true }) { // Corrigido: sem .value
         Icon(
             imageVector = Icons.Default.MoreVert,
             contentDescription = "Mais opções"
         )
     }
     DropdownMenu(
-        expanded = expanded,
-        onDismissRequest = { expanded = false }
+        expanded = expanded, // Corrigido: sem .value
+        onDismissRequest = { expanded = false } // Corrigido: sem .value
     ) {
         DropdownMenuItem(
             text = { Text("Favoritos") },
             onClick = {
-                expanded = false
+                expanded = false // Corrigido: sem .value
                 navController.navigate("favorites")
             }
         )
         DropdownMenuItem(
             text = { Text("Configurações") },
             onClick = {
-                expanded = false
+                expanded = false // Corrigido: sem .value
                 navController.navigate("settings")
             }
         )
         DropdownMenuItem(
             text = { Text("Ajuda") },
             onClick = {
-                expanded = false
+                expanded = false // Corrigido: sem .value
                 navController.navigate("help")
             }
         )
     }
 }
 
+// Usando a versão avançada da BottomNavigationBar do seu colega
 @Composable
 fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     NavigationBar {
-        val homeIconScale by animateFloatAsState( // animação de "pulsar"
+        val homeIconScale by animateFloatAsState(
             targetValue = if (currentRoute == "home") 1.2f else 1f,
             animationSpec = tween(durationMillis = 200),
             label = "HomeIconScale"
@@ -269,7 +276,6 @@ fun BottomNavigationBar(navController: NavController) {
             },
             label = { Text("Início") }
         )
-        // Item "Favoritos"
         val favoritesIconScale by animateFloatAsState(
             targetValue = if (currentRoute == "favorites") 1.2f else 1f,
             animationSpec = tween(durationMillis = 200),
@@ -295,9 +301,8 @@ fun BottomNavigationBar(navController: NavController) {
             },
             label = { Text("Favoritos") }
         )
-        // Item "Informações"
         val infoIconScale by animateFloatAsState(
-            targetValue = if (currentRoute == "information") 1.3f else 1f, // Escala para 1.2f quando selecionado
+            targetValue = if (currentRoute == "information") 1.3f else 1f,
             animationSpec = tween(durationMillis = 300),
             label = "InfoIconScale"
         )
@@ -316,7 +321,7 @@ fun BottomNavigationBar(navController: NavController) {
                 Icon(
                     imageVector = Icons.Default.Description,
                     contentDescription = "Informações",
-                    modifier = Modifier.scale(infoIconScale) // Aplica a animação de escala
+                    modifier = Modifier.scale(infoIconScale)
                 )
             },
             label = { Text("Info") }
