@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/petapp/ui/screens/AddPetScreen.kt
 package com.example.petapp.ui.screens
 
 import android.app.DatePickerDialog
@@ -34,7 +35,10 @@ fun AddPetScreen(navController: NavController) {
     var specie by remember { mutableStateOf("Cachorro") } // Espécie padrão
     var breed by remember { mutableStateOf("") }
     var sex by remember { mutableStateOf("Macho") } // Sexo padrão
-    var birthDate by remember { mutableStateOf(LocalDate.now()) }
+    // --- NOVO: Captura a data inicial para comparação ---
+    val initialBirthDate = remember { LocalDate.now() }
+    var birthDate by remember { mutableStateOf(initialBirthDate) }
+    // --- FIM NOVO ---
     var description by remember { mutableStateOf("") }
     var selectedImageRes by remember { mutableStateOf(R.drawable.icon) } // Imagem padrão
 
@@ -54,6 +58,26 @@ fun AddPetScreen(navController: NavController) {
         birthDate.dayOfMonth
     )
 
+    // --- Início do bloco de cálculo do progresso (NOVA LÓGICA) ---
+    val progress by remember {
+        derivedStateOf {
+            var completedFields = 0
+            // Agora, consideramos apenas os campos que o usuário precisa preencher
+            // Nome, Raça, Descrição, Data de Nascimento (se alterada)
+            val totalFields = 4
+
+            if (name.isNotBlank()) completedFields++
+            if (breed.isNotBlank()) completedFields++
+            if (description.isNotBlank()) completedFields++
+            // Conta a data apenas se ela for diferente da data inicial carregada
+            if (birthDate != initialBirthDate) completedFields++
+
+            // Garante que o progresso não exceda 1.0f (100%) e seja no mínimo 0.0f
+            (completedFields.toFloat() / totalFields).coerceIn(0f, 1f)
+        }
+    }
+    // --- Fim do bloco de cálculo do progresso (NOVA LÓGICA) ---
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -69,12 +93,24 @@ fun AddPetScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(16.dp)
+                .padding(horizontal = 16.dp) // Mantém padding horizontal
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            // --- LinearProgressIndicator foi mantido no topo da Column ---
+            LinearProgressIndicator(
+                progress = progress,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.primaryContainer
+            )
+
+            Spacer(modifier = Modifier.height(16.dp)) // Espaçamento abaixo da barra
+
             // Seleção de Imagem (Ícone de Gato/Cachorro)
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -164,12 +200,12 @@ fun AddPetScreen(navController: NavController) {
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Descrição (opcional)") },
+                label = { Text("Descrição") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
 
-            Spacer(Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Botão Salvar Pet
             Button(

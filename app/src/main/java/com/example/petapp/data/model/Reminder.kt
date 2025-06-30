@@ -3,7 +3,7 @@ package com.example.petapp.data.model
 import java.time.LocalDateTime
 
 enum class Priority {
-    HIGH, LOW
+    HIGH, MEDIUM, LOW
 }
 
 data class Reminder(

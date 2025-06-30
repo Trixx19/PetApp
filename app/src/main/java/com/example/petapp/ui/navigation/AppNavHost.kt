@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/petapp/ui/navigation/AppNavHost.kt
 package com.example.petapp.ui.navigation
 
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -9,7 +10,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import com.example.petapp.ui.screens.AddReminderScreen
-// Importe a nova tela
 import com.example.petapp.ui.screens.AddPetScreen
 import com.example.petapp.ui.screens.FavoritesScreen
 import com.example.petapp.ui.screens.HelpScreen
@@ -24,8 +24,8 @@ import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 @Composable
 fun AppNavHost(
     navController: NavHostController = rememberAnimatedNavController(),
-    isDarkTheme: Boolean,
-    onThemeChange: (Boolean) -> Unit
+    // isDarkTheme: Boolean, // Remova esta linha
+    // onThemeChange: (Boolean) -> Unit // Remova esta linha
 ) {
     AnimatedNavHost(navController = navController, startDestination = "home") {
 
@@ -120,8 +120,8 @@ fun AppNavHost(
         ) {
             SettingsScreen(
                 navController = navController,
-                isDarkTheme = isDarkTheme,
-                onThemeChange = onThemeChange
+                // isDarkTheme = isDarkTheme, // Remova esta linha
+                // onThemeChange = onThemeChange // Remova esta linha
             )
         }
 

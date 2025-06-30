@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/petapp/ui/screens/SettingsScreen.kt
 package com.example.petapp.ui.screens
 
 import androidx.compose.foundation.layout.*
@@ -18,15 +19,16 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    isDarkTheme: Boolean,
-    onThemeChange: (Boolean) -> Unit
+    // Removido: isDarkTheme e onThemeChange não são mais passados diretamente aqui
 ) {
     val context = LocalContext.current
-    // Instancia nosso DataStore
     val settingsDataStore = SettingsDataStore(context)
-    // Coleta o estado atual das notificações
-    val notificationsEnabled by settingsDataStore.notificationsEnabled.collectAsState(initial = true)
     val coroutineScope = rememberCoroutineScope()
+
+    // Coleta o estado atual das notificações do DataStore
+    val notificationsEnabled by settingsDataStore.notificationsEnabled.collectAsState(initial = true)
+    // --- NOVO: Coleta o estado atual do modo escuro do DataStore ---
+    val isDarkThemeEnabled by settingsDataStore.darkModeEnabled.collectAsState(initial = false) // Use o valor padrão aqui
 
     Scaffold(
         topBar = {
@@ -61,11 +63,15 @@ fun SettingsScreen(
                     }
                 }
             )
-            // Interruptor para o tema escuro
+            // --- NOVO: Interruptor para o tema escuro usando DataStore ---
             SettingSwitch(
                 title = "Ativar Modo Escuro",
-                checked = isDarkTheme,
-                onCheckedChange = onThemeChange
+                checked = isDarkThemeEnabled, // Usa o estado lido do DataStore
+                onCheckedChange = { isEnabled ->
+                    coroutineScope.launch {
+                        settingsDataStore.setDarkModeEnabled(isEnabled) // Salva no DataStore
+                    }
+                }
             )
             Divider()
             Button(
@@ -81,8 +87,7 @@ fun SettingsScreen(
     }
 }
 
-// O Composable do SettingSwitch pode continuar o mesmo que você já tinha.
-// Se precisar, aqui está ele novamente:
+// O Composable do SettingSwitch continua o mesmo.
 @Composable
 fun SettingSwitch(
     title: String,

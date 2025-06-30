@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/petapp/ui/screens/AddReminderScreen.kt
 package com.example.petapp.ui.screens
 
 import android.app.DatePickerDialog
@@ -31,14 +32,13 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
     var title by remember { mutableStateOf("") }
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var selectedTime by remember { mutableStateOf(LocalTime.now()) }
-    var priority by remember { mutableStateOf(Priority.LOW) }
+    var priority by remember { mutableStateOf(Priority.LOW) } // Padrão agora é LOW
     var showError by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val scheduler = AlarmScheduler(context)
-    val coroutineScope = rememberCoroutineScope() // <<< 3. ADICIONE O COROUTINE SCOPE
+    val coroutineScope = rememberCoroutineScope()
 
-    // <<< 4. LEIA O ESTADO DAS NOTIFICAÇÕES AQUI TAMBÉM
     val settingsDataStore = SettingsDataStore(context)
     val notificationsEnabled by settingsDataStore.notificationsEnabled.collectAsState(initial = true)
 
@@ -114,33 +114,43 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
 
             Spacer(Modifier.height(24.dp))
 
-            // Seletor de Prioridade
+            // Seletor de Prioridade (agora com três opções)
             Text("Prioridade", style = MaterialTheme.typography.titleMedium)
             Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton(
-                    selected = priority == Priority.LOW,
-                    onClick = { priority = Priority.LOW }
-                )
-                Text("Baixa", Modifier.clickable { priority = Priority.LOW })
-                Spacer(Modifier.width(16.dp))
+                // Opção Alta
                 RadioButton(
                     selected = priority == Priority.HIGH,
                     onClick = { priority = Priority.HIGH }
                 )
                 Text("Alta", Modifier.clickable { priority = Priority.HIGH })
+                Spacer(Modifier.width(16.dp))
+
+                // Opção Média
+                RadioButton(
+                    selected = priority == Priority.MEDIUM,
+                    onClick = { priority = Priority.MEDIUM }
+                )
+                Text("Média", Modifier.clickable { priority = Priority.MEDIUM })
+                Spacer(Modifier.width(16.dp))
+
+                // Opção Baixa
+                RadioButton(
+                    selected = priority == Priority.LOW,
+                    onClick = { priority = Priority.LOW }
+                )
+                Text("Baixa", Modifier.clickable { priority = Priority.LOW })
             }
 
             Spacer(Modifier.height(32.dp))
 
             Button(
                 onClick = {
-                    coroutineScope.launch { // <<< 5. ENVOLVA A LÓGICA EM UM COROUTINE SCOPE
+                    coroutineScope.launch {
                         if (title.isBlank()) {
                             showError = true
                             return@launch
                         }
 
-                        // <<< 6. ADICIONE A VERIFICAÇÃO ANTES DE AGENDAR
                         if (notificationsEnabled) {
                             val dateTime = selectedDate.atTime(selectedTime)
                             val newReminder = Reminder(
@@ -151,10 +161,10 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
 
                             PetRepository.addReminderToPet(petId, newReminder)
 
-                            val channelId = if (priority == Priority.HIGH) {
-                                NotificationHelper.HIGH_PRIORITY_CHANNEL_ID
-                            } else {
-                                NotificationHelper.LOW_PRIORITY_CHANNEL_ID
+                            val channelId = when (priority) { // Lógica para selecionar o canal correto
+                                Priority.HIGH -> NotificationHelper.HIGH_PRIORITY_CHANNEL_ID
+                                Priority.MEDIUM -> NotificationHelper.MEDIUM_PRIORITY_CHANNEL_ID
+                                Priority.LOW -> NotificationHelper.LOW_PRIORITY_CHANNEL_ID
                             }
                             scheduler.schedule(
                                 time = dateTime,
@@ -166,7 +176,6 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
                             Toast.makeText(context, "Lembrete salvo e agendado!", Toast.LENGTH_SHORT).show()
                             navController.popBackStack()
                         } else {
-                            // Mostra um aviso se as notificações estiverem desativadas
                             Toast.makeText(context, "Ative as notificações nas configurações para agendar.", Toast.LENGTH_LONG).show()
                         }
                     }

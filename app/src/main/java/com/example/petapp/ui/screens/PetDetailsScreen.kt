@@ -1,3 +1,4 @@
+// app/src/main/java/com/example/petapp/ui/screens/PetDetailsScreen.kt
 package com.example.petapp.ui.screens
 
 import android.widget.Toast
@@ -198,7 +199,7 @@ fun PetDetailsScreen(petId: Int, navController: NavController) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 8.dp) // Adiciona o mesmo padding dos outros títulos
+                        .padding(vertical = 8.dp)
                 ) {
                     // Título centralizado
                     Text(
@@ -244,16 +245,21 @@ fun ReminderCard(reminder: Reminder) {
             .fillMaxWidth()
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (reminder.priority == Priority.HIGH)
-                MaterialTheme.colorScheme.tertiaryContainer
-            else
-                MaterialTheme.colorScheme.secondaryContainer
+            containerColor = when (reminder.priority) { // Lógica de cores atualizada
+                Priority.HIGH -> MaterialTheme.colorScheme.tertiaryContainer
+                Priority.MEDIUM -> MaterialTheme.colorScheme.primaryContainer // Nova cor para prioridade média
+                Priority.LOW -> MaterialTheme.colorScheme.secondaryContainer
+            }
         )
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(reminder.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold)
             Text("Agendado para: ${reminder.dateTime.format(formatter)}", style = MaterialTheme.typography.bodyMedium)
-            Text("Prioridade: ${if (reminder.priority == Priority.HIGH) "Alta" else "Baixa"}", style = MaterialTheme.typography.bodySmall)
+            Text("Prioridade: ${when (reminder.priority) { // Exibe o texto correto da prioridade
+                Priority.HIGH -> "Alta"
+                Priority.MEDIUM -> "Média"
+                Priority.LOW -> "Baixa"
+            }}", style = MaterialTheme.typography.bodySmall)
         }
     }
 }

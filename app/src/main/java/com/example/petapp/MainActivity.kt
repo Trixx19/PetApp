@@ -1,8 +1,9 @@
+// app/src/main/java/com/example/petapp/MainActivity.kt
 package com.example.petapp
 
 import android.Manifest
 import android.app.AlarmManager
-import android.content.Intent // <<<--- A LINHA QUE FALTAVA
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -14,7 +15,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsState // Importe collectAsState
 import androidx.core.content.ContextCompat
+import com.example.petapp.data.SettingsDataStore // Importe SettingsDataStore
 import com.example.petapp.notifications.NotificationHelper
 import com.example.petapp.ui.navigation.AppNavHost
 import com.example.petapp.ui.theme.PetAppTheme
@@ -62,12 +65,13 @@ class MainActivity : ComponentActivity() {
         askNotificationPermission()
 
         setContent {
-            var isDarkTheme by remember { mutableStateOf(false) } // estado que controla o tema (local)
+            // Instancia o DataStore
+            val settingsDataStore = SettingsDataStore(applicationContext)
+            // Coleta o estado do modo escuro do DataStore
+            val isDarkTheme by settingsDataStore.darkModeEnabled.collectAsState(initial = false) // Lendo do DataStore
+
             PetAppTheme(darkTheme = isDarkTheme) {
-                AppNavHost( // informa o tema atual e troca para o outro
-                    isDarkTheme = isDarkTheme,
-                    onThemeChange = { isDarkTheme = it }
-                )
+                AppNavHost()
             }
         }
     }
