@@ -1,4 +1,4 @@
-// TELA PRINCIPAL / INÍCIO
+// TELA PRINCIPAL
 package com.example.petapp.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
@@ -37,7 +37,7 @@ fun HomeScreen(navController: NavController) {
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Image(
-                            painter = painterResource(id = R.drawable.icon),
+                            painter = painterResource(id = R.drawable.mineicon),
                             contentDescription = "Ícone do Pet App",
                             modifier = Modifier.size(32.dp)
                         )
@@ -82,18 +82,18 @@ fun HomeScreen(navController: NavController) {
                     Icon(
                         imageVector = Icons.Filled.Search,
                         contentDescription = "Ícone de Busca",
-                        tint = Color(0xFF66068C)
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFEDE7F6),
-                    unfocusedContainerColor = Color(0xFFEDE7F6),
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
                     disabledContainerColor = Color(0xFFE0E0E0),
-                    focusedBorderColor = Color(0xFF5E35B1),
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = Color.Transparent,
-                    cursorColor = Color(0xFF5E35B1),
-                    focusedLabelColor = Color(0xFF5E35B1),
-                    unfocusedLabelColor = Color.Gray
+                    cursorColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             )
             val filteredPets = PetRepository.petList.filter {
@@ -162,22 +162,23 @@ fun PetCard(pet: Pet, onClick: () -> Unit) {
                 Text(
                     text = pet.specie,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "Raça: ${pet.breed}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "Sexo: ${pet.sex}",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = pet.description,
                     style = MaterialTheme.typography.bodySmall,
-                    maxLines = 2
+                    maxLines = 2,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             IconButton(
@@ -190,7 +191,7 @@ fun PetCard(pet: Pet, onClick: () -> Unit) {
                 Icon(
                     imageVector = Icons.Default.Favorite,
                     contentDescription = "Favoritar",
-                    tint = if (pet.isFavorite) Color.Red else Color.Gray
+                    tint = if (pet.isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             LaunchedEffect(animatedScale) {
@@ -243,7 +244,9 @@ fun MoreOptionsMenu(navController: NavController) {
 fun BottomNavigationBar(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    NavigationBar {
+    NavigationBar(
+        containerColor = MaterialTheme.colorScheme.surfaceVariant
+    ) {
         val homeIconScale by animateFloatAsState( // animação de "pulsar"
             targetValue = if (currentRoute == "home") 1.2f else 1f,
             animationSpec = tween(durationMillis = 200),
@@ -297,7 +300,7 @@ fun BottomNavigationBar(navController: NavController) {
         )
         // Item "Informações"
         val infoIconScale by animateFloatAsState(
-            targetValue = if (currentRoute == "information") 1.3f else 1f, // Escala para 1.2f quando selecionado
+            targetValue = if (currentRoute == "information") 1.3f else 1f,
             animationSpec = tween(durationMillis = 300),
             label = "InfoIconScale"
         )
@@ -316,7 +319,7 @@ fun BottomNavigationBar(navController: NavController) {
                 Icon(
                     imageVector = Icons.Default.Description,
                     contentDescription = "Informações",
-                    modifier = Modifier.scale(infoIconScale) // Aplica a animação de escala
+                    modifier = Modifier.scale(infoIconScale) // animação de escala
                 )
             },
             label = { Text("Info") }

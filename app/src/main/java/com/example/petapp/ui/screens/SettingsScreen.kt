@@ -13,6 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.petapp.data.PetRepository
 import com.example.petapp.data.SettingsDataStore
+import com.example.petapp.data.ThemePreferences
+import com.example.petapp.ui.theme.ThemeVariant
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,11 +24,15 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val settingsDataStore = SettingsDataStore(context)
+    val themePreferences = remember { ThemePreferences(context) }
     val coroutineScope = rememberCoroutineScope()
 
     // coleta o estado do DataStore
     val notificationsEnabled by settingsDataStore.notificationsEnabled.collectAsState(initial = true)
     val isDarkThemeEnabled by settingsDataStore.darkModeEnabled.collectAsState(initial = false)
+    val selectedThemeVariant by themePreferences.themeVariant.collectAsState(initial = ThemeVariant.MONOCHROME)
+
+    var expandedThemeMenu by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -51,7 +57,7 @@ fun SettingsScreen(
                 text = "Preferências",
                 style = MaterialTheme.typography.titleMedium
             )
-            // switch de notificaç~ies
+            // switch de notificações
             SettingSwitch(
                 title = "Ativar Notificações",
                 checked = notificationsEnabled,
@@ -72,6 +78,50 @@ fun SettingsScreen(
                 }
             )
             Divider()
+
+            // seletor de tema
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = "Escolher Tema", style = MaterialTheme.typography.bodyLarge)
+                ExposedDropdownMenuBox(
+                    expanded = expandedThemeMenu,
+                    onExpandedChange = { expandedThemeMenu = !expandedThemeMenu },
+                    modifier = Modifier.width(IntrinsicSize.Min)
+                ) {
+                    OutlinedTextField(
+                        value = selectedThemeVariant.displayName, //usa o displayName
+                        onValueChange = { },
+                        readOnly = true,
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedThemeMenu) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expandedThemeMenu,
+                        onDismissRequest = { expandedThemeMenu = false }
+                    ) {
+                        ThemeVariant.values().forEach { theme ->
+                            DropdownMenuItem(
+                                text = { Text(theme.displayName) }, // usa o displayName
+                                onClick = {
+                                    coroutineScope.launch {
+                                        themePreferences.saveThemeVariant(theme)
+                                        expandedThemeMenu = false
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+            Divider()
+
             Button(
                 onClick = { PetRepository.clearFavorites() },
                 colors = ButtonDefaults.buttonColors(

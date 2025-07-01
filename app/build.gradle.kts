@@ -55,6 +55,7 @@ dependencies {
     implementation("androidx.activity:activity-compose")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("com.google.accompanist:accompanist-navigation-animation:0.32.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.6.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

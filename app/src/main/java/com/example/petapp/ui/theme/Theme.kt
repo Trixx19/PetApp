@@ -3,37 +3,21 @@ package com.example.petapp.ui.theme
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-
-private val LightColorScheme = lightColorScheme(
-    primary = LightPrimary,
-    secondary = LightSecondary,
-    tertiary = LightTertiary,
-    background = LightBackground,
-    surface = LightSurface,
-    onPrimary = LightOnPrimary,
-    onSecondary = LightOnSecondary,
-    onBackground = LightOnBackground,
-    onSurface = LightOnSurface,
-)
-
-private val DarkColorScheme = darkColorScheme(
-    primary = DarkPrimary,
-    secondary = DarkSecondary,
-    tertiary = DarkTertiary,
-    background = DarkBackground,
-    surface = DarkSurface,
-    onPrimary = DarkOnPrimary,
-    onSecondary = DarkOnSecondary,
-    onBackground = DarkOnBackground,
-    onSurface = DarkOnSurface,
-)
+import com.example.petapp.ui.theme.ThemeVariant
+import com.example.petapp.ui.theme.getLightColorScheme
+import com.example.petapp.ui.theme.getDarkColorScheme
 
 @Composable
 fun PetAppTheme(
     darkTheme: Boolean = false,
+    themeVariant: ThemeVariant = ThemeVariant.MONOCHROME,
     content: @Composable () -> Unit
 ) {
-    val colors = if (darkTheme) DarkColorScheme else LightColorScheme
+    val colors = if (darkTheme) {
+        getDarkColorScheme(themeVariant)
+    } else {
+        getLightColorScheme(themeVariant)
+    }
 
     MaterialTheme(
         colorScheme = colors,
@@ -41,4 +25,3 @@ fun PetAppTheme(
         content = content
     )
 }
-

@@ -1,59 +1,72 @@
 package com.example.petapp
 
-import android.Manifest
-import android.app.AlarmManager
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsState // Importe collectAsState
-import androidx.core.content.ContextCompat
-import com.example.petapp.data.SettingsDataStore // Importe SettingsDataStore
-import com.example.petapp.notifications.NotificationHelper
-import com.example.petapp.ui.navigation.AppNavHost
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.example.petapp.data.SettingsDataStore
+import com.example.petapp.data.ThemePreferences
+import com.example.petapp.ui.screens.*
 import com.example.petapp.ui.theme.PetAppTheme
+import com.example.petapp.ui.theme.ThemeVariant
 
 class MainActivity : ComponentActivity() {
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean -> }
-    private fun askNotificationPermission() { // permissões para rodar as notificações sem problemas, rezando pra funcionar em todos os dispositivos
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContent {
+            val settingsDataStore = SettingsDataStore(applicationContext)
+            val isDarkThemeEnabled by settingsDataStore.darkModeEnabled.collectAsState(initial = false)
+
+            // datastore de preferencias do tema
+            val themePreferences = ThemePreferences(applicationContext)
+            val selectedThemeVariant by themePreferences.themeVariant.collectAsState(initial = ThemeVariant.MONOCHROME)
+
+            PetAppTheme(
+                darkTheme = isDarkThemeEnabled,
+                themeVariant = selectedThemeVariant
             ) {
-                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val alarmManager = getSystemService(ALARM_SERVICE) as AlarmManager
-            if (!alarmManager.canScheduleExactAlarms()) {
-                Intent().also { intent ->
-                    intent.action = Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM
-                    startActivity(intent)
+                Surface(
+                    modifier = Modifier.fillMaxSize(),
+                    color = MaterialTheme.colorScheme.background
+                ) {
+                    val navController = rememberNavController()
+                    NavHost(navController = navController, startDestination = "home") {
+                        composable("home") { HomeScreen(navController = navController) }
+                        composable("add_pet") { AddPetScreen(navController = navController) }
+                        composable("details/{petId}") { backStackEntry ->
+                            val petId = backStackEntry.arguments?.getString("petId")?.toIntOrNull()
+                            if (petId != null) {
+                                PetDetailsScreen(navController = navController, petId = petId)
+                            }
+                        }
+                        composable("favorites") { FavoritesScreen(navController = navController) }
+                        composable("information") { InformationScreen(navController = navController) }
+                        composable("settings") { SettingsScreen(navController = navController) }
+                        composable("help") { HelpScreen(navController = navController) }
+                    }
                 }
             }
         }
     }
+}
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        val notificationHelper = NotificationHelper(this)
-        notificationHelper.createNotificationChannels()
-        askNotificationPermission()
-        setContent {
-            val settingsDataStore = SettingsDataStore(applicationContext)
-            val isDarkTheme by settingsDataStore.darkModeEnabled.collectAsState(initial = false)
-            PetAppTheme(darkTheme = isDarkTheme) {
-                AppNavHost()
-            }
+@Preview(showBackground = true)
+@Composable
+fun DefaultPreview() {
+    PetAppTheme {
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Text("Preview do Pet App")
         }
     }
 }
