@@ -1,4 +1,4 @@
-// NAVHOST DO APP
+// NAVHOST DO APP (Comentário do seu colega)
 package com.example.petapp.ui.navigation
 
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -9,14 +9,8 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
-import com.example.petapp.ui.screens.AddReminderScreen
-import com.example.petapp.ui.screens.AddPetScreen
-import com.example.petapp.ui.screens.FavoritesScreen
-import com.example.petapp.ui.screens.HelpScreen
-import com.example.petapp.ui.screens.HomeScreen
-import com.example.petapp.ui.screens.PetDetailsScreen
-import com.example.petapp.ui.screens.SettingsScreen
-import com.example.petapp.ui.screens.InformationScreen
+import com.example.petapp.ui.screens.*
+import com.example.petapp.ui.theme.ColorPalette
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.google.accompanist.navigation.animation.composable
 import com.google.accompanist.navigation.animation.rememberAnimatedNavController
@@ -25,11 +19,17 @@ import com.google.accompanist.navigation.animation.rememberAnimatedNavController
 @Composable
 fun AppNavHost(
     navController: NavHostController = rememberAnimatedNavController(),
+    // Usamos a sua assinatura de função, com todos os parâmetros de tema
+    isDarkTheme: Boolean,
+    onThemeChange: (Boolean) -> Unit,
+    currentPalette: ColorPalette,
+    onPaletteChange: (ColorPalette) -> Unit
 ) {
     AnimatedNavHost(navController = navController, startDestination = "home") {
-        // algumas tem fade para deixar mais notável a animação de "beat" do ícone
+        // algumas tem fade para deixar mais notável a animação de "beat" do ícone (Comentário do seu colega)
         val animationDuration = 700
-        // home com fade normal
+
+        // home com fade normal (Comentário do seu colega)
         composable(
             "home",
             enterTransition = { fadeIn(animationSpec = tween(animationDuration)) },
@@ -37,7 +37,8 @@ fun AppNavHost(
         ) {
             HomeScreen(navController)
         }
-        // adicionar pet com slide vertical
+
+        // adicionar pet com slide vertical (Comentário do seu colega)
         composable(
             "add_pet",
             enterTransition = {
@@ -55,7 +56,8 @@ fun AppNavHost(
         ) {
             AddPetScreen(navController = navController)
         }
-        // detalhes do pet com slide vertical
+
+        // detalhes do pet com slide vertical (Comentário do seu colega)
         composable(
             "details/{petId}",
             enterTransition = {
@@ -79,7 +81,7 @@ fun AppNavHost(
             }
         }
 
-        // favorites com fade normal
+        // favorites com fade normal (Comentário do seu colega)
         composable(
             "favorites",
             enterTransition = { fadeIn(animationSpec = tween(animationDuration)) },
@@ -88,7 +90,7 @@ fun AppNavHost(
             FavoritesScreen(navController)
         }
 
-        // configurações com slide vertical
+        // configurações com slide vertical (Comentário do seu colega)
         composable(
             "settings",
             enterTransition = {
@@ -104,12 +106,17 @@ fun AppNavHost(
                 ) + fadeOut(animationSpec = tween(animationDuration))
             }
         ) {
+            // Usamos a sua chamada, que passa todos os parâmetros de tema
             SettingsScreen(
                 navController = navController,
+                isDarkTheme = isDarkTheme,
+                onThemeChange = onThemeChange,
+                currentPalette = currentPalette,
+                onPaletteChange = onPaletteChange
             )
         }
 
-        // help com slide
+        // help com slide (Comentário do seu colega)
         composable(
             "help",
             enterTransition = {
@@ -128,7 +135,7 @@ fun AppNavHost(
             HelpScreen(navController)
         }
 
-        // lembrete com slide vertical
+        // lembrete com slide vertical (Comentário do seu colega)
         composable(
             "add_reminder/{petId}",
             enterTransition = {
@@ -150,7 +157,7 @@ fun AppNavHost(
             }
         }
 
-        // information - slide vertical
+        // information - slide vertical (Comentário e tela nova do seu colega)
         composable(
             "information",
             enterTransition = {
@@ -166,6 +173,8 @@ fun AppNavHost(
                 ) + fadeOut(animationSpec = tween(animationDuration))
             }
         ) {
+            // Assumindo que você tem um composable InformationScreen(navController)
+            // Se não tiver, esta linha dará erro e precisaremos criá-la.
             InformationScreen(navController = navController)
         }
     }
