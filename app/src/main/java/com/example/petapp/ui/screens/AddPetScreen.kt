@@ -25,6 +25,8 @@ import androidx.navigation.NavController
 import com.example.petapp.R
 import com.example.petapp.data.PetRepository
 import com.example.petapp.data.model.Pet
+import com.example.petapp.data.model.Vaccine
+import com.example.petapp.data.model.Appointment
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -50,15 +52,49 @@ fun AddPetScreen(navController: NavController) {
         birthDate.monthValue - 1,
         birthDate.dayOfMonth
     )
+
+    // estados para a nova vacina
+    var vaccineName by remember { mutableStateOf("") }
+    var vaccineDate by remember { mutableStateOf(LocalDate.now()) }
+    var vaccineIsDone by remember { mutableStateOf(false) }
+    val vaccineDatePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            vaccineDate = LocalDate.of(year, month + 1, dayOfMonth)
+        },
+        vaccineDate.year,
+        vaccineDate.monthValue - 1,
+        vaccineDate.dayOfMonth
+    )
+
+    // estados para o novo compromisso
+    var appointmentTitle by remember { mutableStateOf("") }
+    var appointmentDate by remember { mutableStateOf(LocalDate.now()) }
+    var appointmentDescription by remember { mutableStateOf("") }
+    val appointmentDatePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            appointmentDate = LocalDate.of(year, month + 1, dayOfMonth)
+        },
+        appointmentDate.year,
+        appointmentDate.monthValue - 1,
+        appointmentDate.dayOfMonth
+    )
+
+
     // progress bar do novo pet
     val progress by remember {
         derivedStateOf {
             var completedFields = 0
-            val totalFields = 4
+            // campos que contribuem para o progresso: nome, raça, sexo, data de nascimento, descrição, nome da vacina, título do compromisso
+            val totalFields = 7
             if (name.isNotBlank()) completedFields++
             if (breed.isNotBlank()) completedFields++
-            if (description.isNotBlank()) completedFields++
+            if (sex.isNotBlank()) completedFields++
             if (birthDate != initialBirthDate) completedFields++
+            if (description.isNotBlank()) completedFields++
+            if (vaccineName.isNotBlank()) completedFields++
+            if (appointmentTitle.isNotBlank()) completedFields++
             (completedFields.toFloat() / totalFields).coerceIn(0f, 1f)
         }
     }
@@ -178,12 +214,78 @@ fun AddPetScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
+            Divider()
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // adicionar uma vacina
+            Text("Adicionar Vacina (Opcional)", style = MaterialTheme.typography.titleMedium)
+            OutlinedTextField(
+                value = vaccineName,
+                onValueChange = { vaccineName = it },
+                label = { Text("Nome da Vacina") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            Spacer(Modifier.height(8.dp))
+            Button(onClick = { vaccineDatePickerDialog.show() }) {
+                Text("Data da Vacina: ${vaccineDate.format(dateFormatter)}")
+            }
+            Spacer(Modifier.height(8.dp))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Checkbox(
+                    checked = vaccineIsDone,
+                    onCheckedChange = { vaccineIsDone = it }
+                )
+                Text("Vacina Concluída")
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+            Divider()
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // adicionar um compromisso
+            Text("Adicionar Compromisso (Opcional)", style = MaterialTheme.typography.titleMedium)
+            OutlinedTextField(
+                value = appointmentTitle,
+                onValueChange = { appointmentTitle = it },
+                label = { Text("Título do Compromisso") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+            Spacer(Modifier.height(8.dp))
+            Button(onClick = { appointmentDatePickerDialog.show() }) {
+                Text("Data do Compromisso: ${appointmentDate.format(dateFormatter)}")
+            }
+            Spacer(Modifier.height(8.dp))
+            OutlinedTextField(
+                value = appointmentDescription,
+                onValueChange = { appointmentDescription = it },
+                label = { Text("Descrição do Compromisso") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3
+            )
+
             Spacer(modifier = Modifier.height(16.dp))
             Button(
                 onClick = {
                     if (name.isBlank() || breed.isBlank()) {
                         Toast.makeText(context, "Nome e Raça são obrigatórios!", Toast.LENGTH_SHORT).show() // toast de erro
                     } else {
+                        val vaccinesList = mutableListOf<Vaccine>()
+                        if (vaccineName.isNotBlank()) {
+                            vaccinesList.add(Vaccine(vaccineName, vaccineDate.format(dateFormatter), vaccineIsDone))
+                        }
+
+                        val appointmentsList = mutableListOf<Appointment>()
+                        if (appointmentTitle.isNotBlank()) {
+                            appointmentsList.add(Appointment(appointmentTitle, appointmentDate.format(dateFormatter), appointmentDescription))
+                        }
+
                         val newPet = Pet(
                             id = PetRepository.petList.size + 1, // lista atual + 1, id simples por enquanto
                             name = name,
@@ -193,8 +295,8 @@ fun AddPetScreen(navController: NavController) {
                             birthDate = birthDate.format(dateFormatter),
                             description = description,
                             imageRes = selectedImageRes,
-                            vaccines = listOf(),
-                            appointments = listOf(),
+                            vaccines = vaccinesList,
+                            appointments = appointmentsList,
                             isFavorite = false,
                             reminders = mutableListOf()
                         )
