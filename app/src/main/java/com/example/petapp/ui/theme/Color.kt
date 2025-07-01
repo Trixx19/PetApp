@@ -75,34 +75,6 @@ val DarkErrorContainer = Color(0xFF8C0000)
 val DarkOnErrorContainer = Color(0xFFFFFFFF)
 val DarkOutline = Color(0xFF757575)
 
-// Paleta Azul
-val BluePrimary = Color(0xFF0D47A1)
-val BlueSecondary = Color(0xFF1976D2)
-val BlueTertiary = Color(0xFF64B5F6)
-
-// Paleta Verde
-val GreenPrimary = Color(0xFF1B5E20)
-val GreenSecondary = Color(0xFF388E3C)
-val GreenTertiary = Color(0xFF81C784)
-
-// Paleta Rosa
-val PinkPrimary = Color(0xFF880E4F)
-val PinkSecondary = Color(0xFFC2185B)
-val PinkTertiary = Color(0xFFF06292)
-
-// Fundo para a paleta Roxo
-val PurpleBackground = Color(0xFFF3E5F5) // Um roxo bem claro
-
-// Fundo para a paleta Azul
-val BlueBackground = Color(0xFFE3F2FD) // Um azul bem claro
-
-// Fundo para a paleta Verde
-val GreenBackground = Color(0xFFE8F5E9) // Um verde bem claro
-
-// Fundo para a paleta Rosa
-val PinkBackground = Color(0xFFFCE4EC) // Um rosa bem claro
-
-val DefaultThemeColor = Color(0xFFE0E0E0)
 // cores dos lembretes
 val ReminderGreen = Color(0xFF2E7D32)
 val ReminderYellow = Color(0xFFFFEB3B)
