@@ -1,32 +1,40 @@
-// TELA DE CONFIGURAÇÕES
 package com.example.petapp.ui.screens
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.petapp.data.PetRepository
 import com.example.petapp.data.SettingsDataStore
+import com.example.petapp.ui.theme.*
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
+    isDarkTheme: Boolean,
+    onThemeChange: (Boolean) -> Unit,
+    currentPalette: ColorPalette,
+    onPaletteChange: (ColorPalette) -> Unit
 ) {
     val context = LocalContext.current
     val settingsDataStore = SettingsDataStore(context)
     val coroutineScope = rememberCoroutineScope()
 
-    // coleta o estado do DataStore
     val notificationsEnabled by settingsDataStore.notificationsEnabled.collectAsState(initial = true)
-    val isDarkThemeEnabled by settingsDataStore.darkModeEnabled.collectAsState(initial = false)
 
     Scaffold(
         topBar = {
@@ -51,7 +59,6 @@ fun SettingsScreen(
                 text = "Preferências",
                 style = MaterialTheme.typography.titleMedium
             )
-            // switch de notificaç~ies
             SettingSwitch(
                 title = "Ativar Notificações",
                 checked = notificationsEnabled,
@@ -61,16 +68,27 @@ fun SettingsScreen(
                     }
                 }
             )
-            // switch de tema escuro e claro
             SettingSwitch(
                 title = "Ativar Modo Escuro",
-                checked = isDarkThemeEnabled,
-                onCheckedChange = { isEnabled ->
+                checked = isDarkTheme,
+                onCheckedChange = onThemeChange
+            )
+            Divider()
+
+            Text(
+                text = "Tema do Aplicativo",
+                style = MaterialTheme.typography.titleMedium
+            )
+            ColorThemeSelector(
+                currentPalette = currentPalette,
+                onPaletteSelected = { newPalette ->
+                    onPaletteChange(newPalette)
                     coroutineScope.launch {
-                        settingsDataStore.setDarkModeEnabled(isEnabled)
+                        settingsDataStore.setThemePalette(newPalette.name)
                     }
                 }
             )
+
             Divider()
             Button(
                 onClick = { PetRepository.clearFavorites() },
@@ -84,6 +102,7 @@ fun SettingsScreen(
         }
     }
 }
+
 @Composable
 fun SettingSwitch(
     title: String,
@@ -103,4 +122,49 @@ fun SettingSwitch(
             onCheckedChange = onCheckedChange
         )
     }
+}
+
+@Composable
+fun ColorThemeSelector(
+    currentPalette: ColorPalette,
+    onPaletteSelected: (ColorPalette) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        val colors = mapOf(
+            ColorPalette.DEFAULT to DefaultThemeColor,
+            ColorPalette.PURPLE to LightPrimary,
+            ColorPalette.BLUE to BluePrimary,
+            ColorPalette.GREEN to GreenPrimary,
+            ColorPalette.PINK to PinkPrimary
+        )
+
+        colors.forEach { (palette, color) ->
+            ColorOption(
+                color = color,
+                isSelected = currentPalette == palette,
+                onClick = { onPaletteSelected(palette) }
+            )
+        }
+    }
+}
+
+@Composable
+fun ColorOption(color: Color, isSelected: Boolean, onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .background(color)
+            .clickable(onClick = onClick)
+            .then(
+                if (isSelected) {
+                    Modifier.border(3.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                } else {
+                    Modifier
+                }
+            )
+    )
 }
