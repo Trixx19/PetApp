@@ -21,7 +21,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // A única responsabilidade aqui é criar os canais de notificação.
         NotificationHelper(applicationContext).createNotificationChannels()
 
         setContent {
