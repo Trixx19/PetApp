@@ -51,9 +51,9 @@ fun FavoritesScreen(navController: NavController) {
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                // Conteúdo animado para tela vazia
+                // conteúdo animado para tela vazia
                 AnimatedVisibility(
-                    visible = true, // Sempre visível quando a lista está vazia
+                    visible = true,
                     enter = fadeIn(animationSpec = androidx.compose.animation.core.tween(durationMillis = 500)) + slideInVertically(
                         initialOffsetY = { fullHeight -> fullHeight / 2 },
                         animationSpec = androidx.compose.animation.core.tween(durationMillis = 500)
