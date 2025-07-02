@@ -1,12 +1,11 @@
 Imagens DO App
 
 
-
+![IMG-20250701-WA0025](https://github.com/user-attachments/assets/f4f234cc-9835-40b7-8d2f-c93ffe5ef297)
 ![IMG-20250701-WA0029](https://github.com/user-attachments/assets/ea1d70dc-a02b-426f-865b-42bd591d2c49)
 ![IMG-20250701-WA0028](https://github.com/user-attachments/assets/f8306e45-c2db-4a81-9d69-51792be6751d)
 ![IMG-20250701-WA0027](https://github.com/user-attachments/assets/64a98cbe-f407-4a33-9fa8-742381d77c28)
 ![IMG-20250701-WA0026](https://github.com/user-attachments/assets/bf1a0587-f3d6-4681-a260-29c8acb66559)
-![IMG-20250701-WA0025](https://github.com/user-attachments/assets/f4f234cc-9835-40b7-8d2f-c93ffe5ef297)
 ![IMG-20250701-WA0024](https://github.com/user-attachments/assets/dbaf87cc-93d0-49cb-928c-d00cb62c3fbf)
 ![IMG-20250701-WA0023](https://github.com/user-attachments/assets/99ddb542-51ed-4f79-a4dc-7eff864d4eb9)
 ![IMG-20250701-WA0022](https://github.com/user-attachments/assets/d72ec2fe-9b7b-4f84-93d1-959ce8914ff0)
