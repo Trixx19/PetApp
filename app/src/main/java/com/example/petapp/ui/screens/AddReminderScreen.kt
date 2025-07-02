@@ -51,8 +51,7 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
     val notificationsEnabled by settingsDataStore.notificationsEnabled.collectAsState(initial = true)
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-    // --- LÓGICA DE PERMISSÕES ---
-    // Verificador da permissão de notificação (Passo 1)
+    // verificador da permissão de notificação 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
@@ -62,7 +61,6 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
         }
     )
 
-    // ... (código dos date pickers, que não muda)
     val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
     val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
     val datePickerDialog = DatePickerDialog( context, { _, year, month, dayOfMonth -> selectedDate = LocalDate.of(year, month + 1, dayOfMonth) }, selectedDate.year, selectedDate.monthValue - 1, selectedDate.dayOfMonth )
@@ -88,7 +86,7 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
                 .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ... (código da UI que não muda: OutlinedTextField, Row de botões, Rádios de prioridade)
+            
             OutlinedTextField( value = title, onValueChange = { title = it }, label = { Text("Título do Lembrete") }, modifier = Modifier.fillMaxWidth(), isError = showError && title.isBlank() )
             if (showError && title.isBlank()) { Text("O título é obrigatório", color = MaterialTheme.colorScheme.error) }
             Spacer(Modifier.height(16.dp))
@@ -122,27 +120,26 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
                         return@Button
                     }
 
-                    // --- INÍCIO DO FLUXO GUIADO DE PERMISSÕES ---
 
-                    // PASSO 1: Checar e pedir a permissão de NOTIFICAÇÃO (o pop-up)
+                    // checar e pedir a permissão de NOTIFICAÇÃO (o pop-up)
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                         val notificationPermissionStatus = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
                         if (notificationPermissionStatus != PackageManager.PERMISSION_GRANTED) {
                             notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            return@Button // Para a execução e espera a resposta do usuário
+                            return@Button 
                         }
                     }
 
-                    // PASSO 2: Checar e pedir a permissão de ALARME (a especial)
+                    // checar e pedir a permissão de ALARME
                     if (!alarmManager.canScheduleExactAlarms()) {
                         Toast.makeText(context, "Agora, por favor, ative a permissão para 'Alarmes e lembretes' para finalizar.", Toast.LENGTH_LONG).show()
                         Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).also {
                             context.startActivity(it)
                         }
-                        return@Button // Para a execução e espera a ação do usuário nas configurações
+                        return@Button
                     }
 
-                    // PASSO 3: Se todas as permissões estiverem OK, agendar o lembrete
+                    // se todas as permissões estiverem OK, agendar o lembrete
                     coroutineScope.launch {
                         val dateTime = selectedDate.atTime(selectedTime)
                         val newReminder = Reminder(title = title, dateTime = dateTime, priority = priority)
