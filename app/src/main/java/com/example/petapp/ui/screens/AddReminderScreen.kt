@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
-import com.example.petapp.data.PetRepository
+//import com.example.petapp.data.PetRepository
 import com.example.petapp.data.SettingsDataStore
 import com.example.petapp.data.model.Priority
 import com.example.petapp.data.model.Reminder
@@ -146,7 +146,7 @@ fun AddReminderScreen(petId: Int, navController: NavController) {
                     coroutineScope.launch {
                         val dateTime = selectedDate.atTime(selectedTime)
                         val newReminder = Reminder(title = title, dateTime = dateTime, priority = priority)
-                        PetRepository.addReminderToPet(petId, newReminder)
+                       //PetRepository.addReminderToPet(petId, newReminder)
                         val channelId = when (priority) {
                             Priority.HIGH -> NotificationHelper.HIGH_PRIORITY_CHANNEL_ID
                             Priority.MEDIUM -> NotificationHelper.MEDIUM_PRIORITY_CHANNEL_ID
