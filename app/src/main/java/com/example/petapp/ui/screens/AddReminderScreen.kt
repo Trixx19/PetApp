@@ -1,9 +1,6 @@
 package com.example.petapp.ui.screens
 
 import android.Manifest
-import android.app.AlarmManager
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,10 +9,7 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,147 +17,95 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import androidx.navigation.NavController
-//import com.example.petapp.data.PetRepository
-import com.example.petapp.data.SettingsDataStore
-import com.example.petapp.data.model.Priority
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.petapp.data.model.Reminder
-import com.example.petapp.notifications.AlarmScheduler
-import com.example.petapp.notifications.NotificationHelper
-import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import com.example.petapp.notifications.AlarmSchedulerImpl
+import com.example.petapp.ui.PetViewModel
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddReminderScreen(petId: Int, navController: NavController) {
+fun AddReminderScreen(
+    onReminderAdded: () -> Unit,
+    viewModel: PetViewModel = viewModel(factory = PetViewModel.Factory)
+) {
+    val pet by viewModel.uiState.collectAsState()
     var title by remember { mutableStateOf("") }
-    var selectedDate by remember { mutableStateOf(LocalDate.now()) }
-    var selectedTime by remember { mutableStateOf(LocalTime.now()) }
-    var priority by remember { mutableStateOf(Priority.MEDIUM) }
-    var showError by remember { mutableStateOf(false) }
-
     val context = LocalContext.current
-    val scheduler = AlarmScheduler(context)
-    val coroutineScope = rememberCoroutineScope()
-    val settingsDataStore = SettingsDataStore(context)
-    val notificationsEnabled by settingsDataStore.notificationsEnabled.collectAsState(initial = true)
-    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val scheduler = remember { AlarmSchedulerImpl(context) }
+    var selectedDateTime by remember { mutableStateOf<Calendar?>(null) }
 
-    // verificador da permissão de notificação 
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+    // Lógica para pedir permissão de notificação
+    val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             if (!isGranted) {
-                Toast.makeText(context, "Sem a permissão, as notificações não serão exibidas.", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "Permissão de notificação negada.", Toast.LENGTH_SHORT).show()
             }
         }
     )
 
-    val dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-    val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-    val datePickerDialog = DatePickerDialog( context, { _, year, month, dayOfMonth -> selectedDate = LocalDate.of(year, month + 1, dayOfMonth) }, selectedDate.year, selectedDate.monthValue - 1, selectedDate.dayOfMonth )
-    val timePickerDialog = TimePickerDialog( context, { _, hour, minute -> selectedTime = LocalTime.of(hour, minute) }, selectedTime.hour, selectedTime.minute, true )
+    // Lógica da UI para escolher data e hora (simplificada)
+    // ... (pode adicionar DatePicker e TimePicker aqui como na versão anterior)
 
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Novo Lembrete para ${pet?.name ?: "..."}",
+            style = MaterialTheme.typography.headlineSmall
+        )
+        OutlinedTextField(
+            value = title,
+            onValueChange = { title = it },
+            label = { Text("Título do Lembrete") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        // Adicionar aqui botões para definir a data e hora em 'selectedDateTime'
+        Button(onClick = {
+            // Lógica para mostrar Date/Time Picker e atualizar selectedDateTime
+            // Exemplo:
+            selectedDateTime = Calendar.getInstance().apply {
+                add(Calendar.SECOND, 15) // Agendar para 15 segundos no futuro para teste
+            }
+            Toast.makeText(context, "Lembrete agendado para 15 segundos.", Toast.LENGTH_SHORT).show()
+        }) {
+            Text("Agendar (para teste)")
+        }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Adicionar Lembrete") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+        Button(
+            onClick = {
+                // 1. Verificar permissão de notificação (Android 13+)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    val permissionStatus = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
+                    if (permissionStatus != PackageManager.PERMISSION_GRANTED) {
+                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        return@Button
                     }
                 }
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .padding(padding)
-                .padding(16.dp)
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            
-            OutlinedTextField( value = title, onValueChange = { title = it }, label = { Text("Título do Lembrete") }, modifier = Modifier.fillMaxWidth(), isError = showError && title.isBlank() )
-            if (showError && title.isBlank()) { Text("O título é obrigatório", color = MaterialTheme.colorScheme.error) }
-            Spacer(Modifier.height(16.dp))
-            Row( modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceAround ) {
-                Button(onClick = { datePickerDialog.show() }) { Text("Data: ${selectedDate.format(dateFormatter)}") }
-                Button(onClick = { timePickerDialog.show() }) { Text("Hora: ${selectedTime.format(timeFormatter)}") }
-            }
-            Spacer(Modifier.height(24.dp))
-            Text("Prioridade", style = MaterialTheme.typography.titleMedium)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                RadioButton( selected = priority == Priority.LOW, onClick = { priority = Priority.LOW } )
-                Text("Baixa", Modifier.clickable { priority = Priority.LOW })
-                Spacer(Modifier.width(16.dp))
-                RadioButton( selected = priority == Priority.MEDIUM, onClick = { priority = Priority.MEDIUM } )
-                Text("Média", Modifier.clickable { priority = Priority.MEDIUM })
-                Spacer(Modifier.width(16.dp))
-                RadioButton( selected = priority == Priority.HIGH, onClick = { priority = Priority.HIGH } )
-                Text("Alta", Modifier.clickable { priority = Priority.HIGH })
-            }
-            Spacer(Modifier.height(32.dp))
 
-
-            Button(
-                onClick = {
-                    if (title.isBlank()) {
-                        showError = true
-                        return@Button
-                    }
-                    if (!notificationsEnabled) {
-                        Toast.makeText(context, "Ative as notificações nas configurações para agendar.", Toast.LENGTH_LONG).show()
-                        return@Button
-                    }
-
-
-                    // checar e pedir a permissão de NOTIFICAÇÃO (o pop-up)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        val notificationPermissionStatus = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
-                        if (notificationPermissionStatus != PackageManager.PERMISSION_GRANTED) {
-                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            return@Button 
-                        }
-                    }
-
-                    // checar e pedir a permissão de ALARME
-                    if (!alarmManager.canScheduleExactAlarms()) {
-                        Toast.makeText(context, "Agora, por favor, ative a permissão para 'Alarmes e lembretes' para finalizar.", Toast.LENGTH_LONG).show()
-                        Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).also {
-                            context.startActivity(it)
-                        }
-                        return@Button
-                    }
-
-                    // se todas as permissões estiverem OK, agendar o lembrete
-                    coroutineScope.launch {
-                        val dateTime = selectedDate.atTime(selectedTime)
-                        val newReminder = Reminder(title = title, dateTime = dateTime, priority = priority)
-                       //PetRepository.addReminderToPet(petId, newReminder)
-                        val channelId = when (priority) {
-                            Priority.HIGH -> NotificationHelper.HIGH_PRIORITY_CHANNEL_ID
-                            Priority.MEDIUM -> NotificationHelper.MEDIUM_PRIORITY_CHANNEL_ID
-                            Priority.LOW -> NotificationHelper.LOW_PRIORITY_CHANNEL_ID
-                        }
-                        scheduler.schedule(
-                            reminderId = newReminder.id,
-                            time = dateTime,
-                            title = "Lembrete para o seu Pet!",
-                            message = title,
-                            channelId = channelId
+                // 2. Agendar o alarme
+                pet?.let { currentPet ->
+                    selectedDateTime?.let { calendar ->
+                        val newReminder = Reminder(
+                            title = title,
+                            dateTime = calendar.timeInMillis
                         )
+                        scheduler.schedule(newReminder) // Agendar o alarme
+
+                        val updatedReminders = currentPet.reminders + newReminder
+                        viewModel.updatePet(currentPet.copy(reminders = updatedReminders))
                         Toast.makeText(context, "Lembrete salvo e agendado!", Toast.LENGTH_SHORT).show()
-                        navController.popBackStack()
-                    }
-                },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Salvar Lembrete")
-            }
+                        onReminderAdded()
+                    } ?: Toast.makeText(context, "Por favor, defina uma data e hora.", Toast.LENGTH_SHORT).show()
+                }
+            },
+            enabled = title.isNotBlank()
+        ) {
+            Text("Salvar e Agendar Lembrete")
         }
     }
 }

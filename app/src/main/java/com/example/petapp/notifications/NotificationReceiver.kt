@@ -1,4 +1,3 @@
-// CLASSE PARA O RECEBIMENTO DE NOTIFICAÇÕES
 package com.example.petapp.notifications
 
 import android.content.BroadcastReceiver
@@ -7,14 +6,11 @@ import android.content.Intent
 
 class NotificationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val title = intent.getStringExtra("notification_title") ?: "Lembrete do PetApp"
-        val message = intent.getStringExtra("notification_message") ?: "Você tem um novo lembrete!"
-        val channelId = intent.getStringExtra("notification_channel") ?: NotificationHelper.LOW_PRIORITY_CHANNEL_ID
+        val title = intent.getStringExtra("NOTIFICATION_TITLE") ?: "Lembrete do PetApp"
+        val message = intent.getStringExtra("NOTIFICATION_MESSAGE") ?: "Você tem um novo lembrete!"
 
-        val notificationId = intent.getIntExtra("notification_id", System.currentTimeMillis().toInt())
         val notificationHelper = NotificationHelper(context)
-        
-        notificationHelper.createNotificationChannels()
-        notificationHelper.sendNotification(channelId, title, message, notificationId)
+        notificationHelper.createNotificationChannel() // Garante que o canal existe
+        notificationHelper.sendNotification(title, message)
     }
 }

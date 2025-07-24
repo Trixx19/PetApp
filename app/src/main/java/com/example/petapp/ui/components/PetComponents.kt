@@ -8,31 +8,39 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.petapp.data.model.Pet
 
 @Composable
 fun PetItemCard(pet: Pet, onClick: () -> Unit) {
-    ElevatedCard(
+    Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            .clickable(onClick = onClick)
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Icon(
-                imageVector = Icons.Default.Pets,
-                contentDescription = "Pet Icon",
-                modifier = Modifier.size(40.dp)
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(pet.imageUrl)
+                    .crossfade(true)
+                    .error(android.R.drawable.ic_menu_gallery)
+                    .build(),
+                contentDescription = pet.name,
+                modifier = Modifier.size(80.dp),
+                contentScale = ContentScale.Crop
             )
-            Spacer(modifier = Modifier.width(16.dp))
-            Column {
-                Text(text = pet.name, style = MaterialTheme.typography.titleLarge)
-                Text(text = pet.breed, style = MaterialTheme.typography.bodyMedium, color = Color.Gray)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(pet.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                Text("${pet.specie} | ${pet.breed}", style = MaterialTheme.typography.bodyMedium)
             }
         }
     }
@@ -47,12 +55,16 @@ fun EmptyState() {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Icon(
                 imageVector = Icons.Default.Pets,
-                contentDescription = "No pets",
+                contentDescription = "Nenhum pet",
                 modifier = Modifier.size(80.dp),
-                tint = Color.LightGray
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.height(16.dp))
-            Text(text = "Nenhum pet adicionado ainda.", style = MaterialTheme.typography.bodyLarge, color = Color.Gray)
+            Text(
+                text = "Nenhum pet adicionado ainda.",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }

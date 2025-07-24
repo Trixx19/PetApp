@@ -41,6 +41,21 @@ android {
 }
 
 dependencies {
+
+    // --- DataStore para Preferências ---
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // --- Gson para Type Converters do Room ---
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // --- Testes ---
+    testImplementation(libs.junit)
+// ... (resto do arquivo)
+    implementation("com.google.code.gson:gson:2.10.1")
+    // --- Requisições Web com Retrofit ---
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0") // Converte JSON em objetos Kotlin
+    implementation("com.squareup.okhttp3:logging-interceptor:4.11.0") // Ajuda a visualizar as requisições no Logcat
     // --- ViewModel e Lifecycle ---
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.0")
     // A dependência abaixo já é incluída pelo viewmodel-compose, mas a deixamos para clareza
@@ -72,6 +87,12 @@ dependencies {
 
     // --- DataStore para Preferências ---
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // --- Gson para Type Converters do Room ---
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // --- Carregamento de Imagens (Coil) ---
+    implementation("io.coil-kt:coil-compose:2.6.0")
 
     // --- Testes ---
     testImplementation(libs.junit)

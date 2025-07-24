@@ -1,68 +1,88 @@
 package com.example.petapp.ui.navigation
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.petapp.R
-import com.example.petapp.ui.components.BottomNavigationBar
-import com.example.petapp.ui.components.MoreOptionsMenu
-import com.example.petapp.ui.screens.*
+import com.example.petapp.ui.screens.AddPetScreen
+import com.example.petapp.ui.screens.AddReminderScreen
+import com.example.petapp.ui.screens.FavoritesScreen
+import com.example.petapp.ui.screens.HomeScreen
+import com.example.petapp.ui.screens.PetDetailsScreen
 
-@OptIn(ExperimentalMaterial3Api::class)
+object PetDestinations {
+    const val HOME_ROUTE = "home"
+    const val FAVORITES_ROUTE = "favorites"
+    const val ADD_PET_ROUTE = "add_pet"
+    const val ADD_REMINDER_ROUTE = "add_reminder"
+    const val PET_DETAIL_ROUTE = "pet_detail"
+    const val PET_ID_ARG = "petId"
+}
+
 @Composable
-fun AppNavHost() {
-    val navController = rememberNavController()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(id = R.drawable.mineicon),
-                            contentDescription = "Ícone",
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Pet App")
-                    }
+fun AppNavHost(
+    navController: NavHostController,
+    modifier: Modifier = Modifier
+) {
+    NavHost(
+        navController = navController,
+        startDestination = PetDestinations.HOME_ROUTE,
+        modifier = modifier
+    ) {
+        composable(route = PetDestinations.HOME_ROUTE) {
+            HomeScreen(
+                onPetClick = { petId ->
+                    navController.navigate("${PetDestinations.PET_DETAIL_ROUTE}/$petId")
                 },
-                actions = { MoreOptionsMenu(navController) }
-            )
-        },
-        bottomBar = { BottomNavigationBar(navController) },
-        floatingActionButton = {
-            if (currentRoute == "home") {
-                FloatingActionButton(onClick = { navController.navigate("add_pet") }) {
-                    Icon(Icons.Filled.Add, "Adicionar Pet")
+                onAddPetClick = {
+                    navController.navigate(PetDestinations.ADD_PET_ROUTE)
                 }
-            }
+            )
         }
-    ) { innerPadding ->
-        NavHost(
-            navController = navController,
-            startDestination = "home",
-            modifier = Modifier.padding(innerPadding)
+
+        composable(route = PetDestinations.FAVORITES_ROUTE) {
+            FavoritesScreen(
+                onPetClick = { petId ->
+                    navController.navigate("${PetDestinations.PET_DETAIL_ROUTE}/$petId")
+                }
+            )
+        }
+
+        composable(
+            route = "${PetDestinations.PET_DETAIL_ROUTE}/{${PetDestinations.PET_ID_ARG}}",
+            arguments = listOf(navArgument(PetDestinations.PET_ID_ARG) {
+                type = NavType.IntType
+            })
         ) {
-            composable("home") {
-                HomeScreen(onPetClick = { petId -> navController.navigate("details/$petId") })
-            }
-            // ... (resto das suas rotas)
+            // 👇 A CORREÇÃO ESTÁ AQUI 👇
+            // Agora estamos a passar a ação 'onAddReminderClick'.
+            PetDetailsScreen(
+                onNavigateUp = { navController.popBackStack() },
+                onAddReminderClick = { petId ->
+                    navController.navigate("${PetDestinations.ADD_REMINDER_ROUTE}/$petId")
+                }
+            )
+        }
+
+        composable(route = PetDestinations.ADD_PET_ROUTE) {
+            AddPetScreen(
+                onPetAdded = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = "${PetDestinations.ADD_REMINDER_ROUTE}/{${PetDestinations.PET_ID_ARG}}",
+            arguments = listOf(navArgument(PetDestinations.PET_ID_ARG) {
+                type = NavType.IntType
+            })
+        ) {
+            AddReminderScreen(
+                onReminderAdded = { navController.popBackStack() },
+                onNavigateUp = { navController.popBackStack() }
+            )
         }
     }
 }
