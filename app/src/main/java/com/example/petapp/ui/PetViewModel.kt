@@ -18,7 +18,10 @@ class PetViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    private val petId: String? = savedStateHandle[PetDestinations.PET_ID_ARG]
+    // ## A CORREÇÃO FINAL ESTÁ AQUI ##
+    // petId agora é um Int?, o que significa que ele PODE ser nulo.
+    // Isso permite que o ViewModel seja usado por telas que não têm um ID (como a HomeScreen).
+    private val petId: Int? = savedStateHandle[PetDestinations.PET_ID_ARG]
 
     val allPets: StateFlow<List<Pet>> = repository.getAllPets()
         .stateIn(
@@ -34,10 +37,12 @@ class PetViewModel(
             initialValue = emptyList()
         )
 
+    // ## E A SEGUNDA PARTE DA CORREÇÃO ##
+    // O uiState só tenta carregar um pet específico se o petId não for nulo.
+    // Se for nulo, ele simplesmente continua nulo, sem causar erro.
     val uiState: StateFlow<Pet?> =
         if (petId != null) {
-            repository.getPetStream(petId.toInt())
-                .filterNotNull()
+            repository.getPetStream(petId)
                 .stateIn(
                     scope = viewModelScope,
                     started = SharingStarted.WhileSubscribed(5000),

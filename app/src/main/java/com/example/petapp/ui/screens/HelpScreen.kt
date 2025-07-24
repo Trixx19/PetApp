@@ -1,4 +1,3 @@
-// TELA DE AJUDA / FAQ
 package com.example.petapp.ui.screens
 
 import androidx.compose.foundation.layout.*

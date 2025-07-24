@@ -1,5 +1,6 @@
 package com.example.petapp
 
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -31,9 +32,16 @@ fun PetApp() {
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                // O menu de 3 pontinhos agora é chamado de forma simples
                 actions = {
-                    MoreOptionsMenu()
+                    // A chamada aqui está correta, passando as duas ações
+                    MoreOptionsMenu(
+                        onNavigateToSettings = {
+                            navController.navigate(PetDestinations.SETTINGS_ROUTE)
+                        },
+                        onNavigateToHelp = {
+                            navController.navigate(PetDestinations.HELP_ROUTE)
+                        }
+                    )
                 }
             )
         },
@@ -42,7 +50,6 @@ fun PetApp() {
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentDestination = navBackStackEntry?.destination
 
-                // Item "Início"
                 NavigationBarItem(
                     icon = { Icon(Icons.Filled.Home, "Início") },
                     label = { Text(stringResource(R.string.home_destination)) },
@@ -56,13 +63,25 @@ fun PetApp() {
                     }
                 )
 
-                // Item "Favoritos" (o caminho principal)
                 NavigationBarItem(
                     icon = { Icon(Icons.Filled.Favorite, "Favoritos") },
                     label = { Text(stringResource(R.string.favorites_destination)) },
                     selected = currentDestination?.hierarchy?.any { it.route == PetDestinations.FAVORITES_ROUTE } == true,
                     onClick = {
                         navController.navigate(PetDestinations.FAVORITES_ROUTE) {
+                            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                )
+
+                NavigationBarItem(
+                    icon = { Icon(Icons.Filled.Description, "Informações") },
+                    label = { Text(stringResource(R.string.information_destination)) },
+                    selected = currentDestination?.hierarchy?.any { it.route == PetDestinations.INFORMATION_ROUTE } == true,
+                    onClick = {
+                        navController.navigate(PetDestinations.INFORMATION_ROUTE) {
                             popUpTo(navController.graph.findStartDestination().id) { saveState = true }
                             launchSingleTop = true
                             restoreState = true

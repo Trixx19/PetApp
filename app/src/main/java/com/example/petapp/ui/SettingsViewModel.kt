@@ -24,7 +24,6 @@ class SettingsViewModel(
     val notificationsEnabled: StateFlow<Boolean> = settingsDataStore.notificationsEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
-    // 1. CORREÇÃO: Erro de digitação
     val darkModeEnabled: StateFlow<Boolean> = settingsDataStore.darkModeEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -66,11 +65,11 @@ class SettingsViewModel(
                 extras: CreationExtras
             ): T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as PetApplication
-                // 2. CORREÇÃO PRINCIPAL: Acessando as dependências através do 'container'
+                // Agora sim, a 'application' tem todas as dependências necessárias
                 return SettingsViewModel(
-                    application.container.settingsDataStore,
-                    application.container.themePreferences,
-                    application.container.petRepository
+                    application.settingsDataStore,
+                    application.themePreferences,
+                    application.repository
                 ) as T
             }
         }

@@ -1,4 +1,3 @@
-// TELA DE INFORMAÇÕES / INFO NOVO
 package com.example.petapp.ui.screens
 
 import androidx.compose.foundation.layout.*
@@ -22,7 +21,9 @@ data class InformationItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun InformationScreen(navController: NavController) {
+fun InformationScreen(
+    onNavigateUp: () -> Unit // Usando onNavigateUp para consistência
+) {
     val infoList = listOf(
         InformationItem(
             title = "Vacinas Essenciais para Cães",
@@ -44,46 +45,6 @@ fun InformationScreen(navController: NavController) {
             )
         ),
         InformationItem(
-            title = "Vermífugos para Pets",
-            description = "A vermifugação regular é crucial para a saúde do seu pet.",
-            details = listOf(
-                "Filhotes: A partir de 15 dias de vida, com repetições a cada 15-21 dias até 3-6 meses.",
-                "Adultos: A cada 3 a 6 meses, ou conforme orientação veterinária.",
-                "Importância: Previne doenças, melhora absorção de nutrientes e protege a família de zoonoses."
-            )
-        ),
-        InformationItem(
-            title = "Remédios Úteis para Ter em Casa (Emergências Leves)",
-            description = "Alguns itens básicos para pequenos incidentes, sempre sob orientação veterinária.",
-            details = listOf(
-                "Antisséptico Tópico (Clorexidina): Para pequenos cortes e arranhões.",
-                "Soro Fisiológico: Para limpeza de olhos e feridas.",
-                "Gaze e Esparadrapo: Para curativos.",
-                "Termômetro Retal: Para verificar a temperatura corporal.",
-                "Probióticos Veterinários: Para diarreias leves (com prescrição)."
-            )
-        ),
-        InformationItem(
-            title = "Doenças Comuns em Cães e Sintomas",
-            description = "Fique atento aos sinais que seu cão pode apresentar.",
-            details = listOf(
-                "Cinomose: Febre, secreção nasal e ocular, vômito, diarreia, tosse, convulsões, tiques nervosos.",
-                "Parvovirose: Vômito e diarreia (com sangue) severos, perda de apetite, letargia, desidratação.",
-                "Leptospirose: Febre, vômito, icterícia (pele e mucosas amareladas), dor muscular, insuficiência renal.",
-                "Tosse dos Canis: Tosse seca e persistente, engasgos, febre leve."
-            )
-        ),
-        InformationItem(
-            title = "Doenças Comuns em Gatos e Sintomas",
-            description = "Conheça as principais doenças que afetam os felinos.",
-            details = listOf(
-                "Rinotraqueíte Viral Felina (Herpesvírus): Espirros, secreção nasal e ocular, febre, perda de apetite, úlceras na boca.",
-                "Calicivirose Felina: Úlceras na boca e língua, espirros, secreção nasal, claudicação (manqueira temporária).",
-                "Panleucopenia Felina: Vômito, diarreia (com ou sem sangue), perda de apetite, letargia severa, desidratação.",
-                "Leucemia Felina (FELV): Anemia, perda de peso, febre, infecções recorrentes, tumores. (Doença grave, vacinação é crucial)."
-            )
-        ),
-        InformationItem(
             title = "Sinais de Alerta: Quando Procurar o Veterinário?",
             description = "Não hesite em buscar ajuda profissional se notar qualquer um destes sinais:",
             details = listOf(
@@ -101,20 +62,20 @@ fun InformationScreen(navController: NavController) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Informações Pet") },
+                title = { Text("Informações Úteis") },
                 navigationIcon = {
-                    IconButton(onClick = {
-                        navController.navigate("home") {
-                            popUpTo("home") { inclusive = true }
-                            launchSingleTop = true
-                        }
-                    }) {
+                    IconButton(onClick = onNavigateUp) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Voltar para Início"
+                            contentDescription = "Voltar"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
             )
         },
     ) { innerPadding ->
@@ -127,7 +88,7 @@ fun InformationScreen(navController: NavController) {
         ) {
             item {
                 Text(
-                    text = "Um guia para a saúde do seu pet!",
+                    text = "Um guia rápido para a saúde do seu pet!",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
@@ -162,7 +123,7 @@ fun InformationCard(item: InformationItem) {
                     Text(
                         text = "• $detail",
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.padding(start = 8.dp, top = 2.dp)
                     )
                 }
             }

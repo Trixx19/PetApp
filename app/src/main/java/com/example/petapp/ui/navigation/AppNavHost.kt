@@ -7,11 +7,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.example.petapp.ui.screens.AddPetScreen
-import com.example.petapp.ui.screens.AddReminderScreen
-import com.example.petapp.ui.screens.FavoritesScreen
-import com.example.petapp.ui.screens.HomeScreen
-import com.example.petapp.ui.screens.PetDetailsScreen
+import com.example.petapp.ui.screens.*
 
 object PetDestinations {
     const val HOME_ROUTE = "home"
@@ -19,6 +15,9 @@ object PetDestinations {
     const val ADD_PET_ROUTE = "add_pet"
     const val ADD_REMINDER_ROUTE = "add_reminder"
     const val PET_DETAIL_ROUTE = "pet_detail"
+    const val SETTINGS_ROUTE = "settings"
+    const val HELP_ROUTE = "help"
+    const val INFORMATION_ROUTE = "information" // Rota adicionada
     const val PET_ID_ARG = "petId"
 }
 
@@ -32,51 +31,44 @@ fun AppNavHost(
         startDestination = PetDestinations.HOME_ROUTE,
         modifier = modifier
     ) {
-        // ## A CORREÇÃO ESTÁ AQUI ##
         composable(route = PetDestinations.HOME_ROUTE) {
             HomeScreen(
-                // A chamada agora está mais simples, sem o onNavigateToFavorites
-                onPetClick = { petId ->
-                    navController.navigate("${PetDestinations.PET_DETAIL_ROUTE}/$petId")
-                },
-                onAddPetClick = {
-                    navController.navigate(PetDestinations.ADD_PET_ROUTE)
-                }
+                onPetClick = { petId -> navController.navigate("${PetDestinations.PET_DETAIL_ROUTE}/$petId") },
+                onAddPetClick = { navController.navigate(PetDestinations.ADD_PET_ROUTE) }
             )
         }
-
         composable(route = PetDestinations.FAVORITES_ROUTE) {
-            FavoritesScreen(
-                onPetClick = { petId ->
-                    navController.navigate("${PetDestinations.PET_DETAIL_ROUTE}/$petId")
-                }
-            )
+            FavoritesScreen(onPetClick = { petId -> navController.navigate("${PetDestinations.PET_DETAIL_ROUTE}/$petId") })
         }
-
         composable(
             route = "${PetDestinations.PET_DETAIL_ROUTE}/{${PetDestinations.PET_ID_ARG}}",
             arguments = listOf(navArgument(PetDestinations.PET_ID_ARG) { type = NavType.IntType })
         ) {
             PetDetailsScreen(
                 onNavigateUp = { navController.popBackStack() },
-                onAddReminderClick = { petId ->
-                    navController.navigate("${PetDestinations.ADD_REMINDER_ROUTE}/$petId")
-                }
+                onAddReminderClick = { petId -> navController.navigate("${PetDestinations.ADD_REMINDER_ROUTE}/$petId") }
             )
         }
-
         composable(route = PetDestinations.ADD_PET_ROUTE) {
-            AddPetScreen(
-                onPetAdded = { navController.popBackStack() }
-            )
+            AddPetScreen(onPetAdded = { navController.popBackStack() })
         }
-
         composable(
             route = "${PetDestinations.ADD_REMINDER_ROUTE}/{${PetDestinations.PET_ID_ARG}}",
             arguments = listOf(navArgument(PetDestinations.PET_ID_ARG) { type = NavType.IntType })
         ) {
-            AddReminderScreen(
-                onReminderAdded = { navController.popBackStack() }
+            AddReminderScreen(onReminderAdded = { navController.popBackStack() })
+        }
+        composable(route = PetDestinations.SETTINGS_ROUTE) {
+            SettingsScreen(onNavigateUp = { navController.popBackStack() })
+        }
+        composable(route = PetDestinations.HELP_ROUTE) {
+            HelpScreen(navController = navController)
+        }
+
+        // Rota para a nova tela de informações
+        composable(route = PetDestinations.INFORMATION_ROUTE) {
+            InformationScreen(
+                onNavigateUp = { navController.popBackStack() }
             )
         }
     }

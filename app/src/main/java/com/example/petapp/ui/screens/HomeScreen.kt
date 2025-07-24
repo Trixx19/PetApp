@@ -31,7 +31,7 @@ import com.example.petapp.ui.PetViewModel
 @Composable
 fun HomeScreen(
     onPetClick: (Int) -> Unit,
-    onAddPetClick: () -> Unit, // 1. PARÂMETRO ADICIONADO DE VOLTA
+    onAddPetClick: () -> Unit,
     viewModel: PetViewModel = viewModel(factory = PetViewModel.Factory)
 ) {
     val allPets by viewModel.allPets.collectAsState()
@@ -43,7 +43,6 @@ fun HomeScreen(
         allPets.filter { it.name.contains(searchQuery, ignoreCase = true) }
     }
 
-    // 2. ADICIONANDO O SCAFFOLD DE VOLTA
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(onClick = onAddPetClick) {
@@ -54,7 +53,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding) // 3. USANDO O PADDING DO SCAFFOLD
+                .padding(innerPadding)
         ) {
             SearchBar(
                 query = searchQuery,
@@ -69,8 +68,6 @@ fun HomeScreen(
     }
 }
 
-// O resto do arquivo (SearchBar, PetList, PetCard, MoreOptionsMenu) continua igual...
-
 @Composable
 private fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
     OutlinedTextField(
@@ -79,7 +76,7 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         label = { Text("Buscar pet") },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(start = 16.dp, end = 16.dp, top = 1.dp, bottom = 16.dp),
         shape = RoundedCornerShape(50),
         singleLine = true,
         trailingIcon = { Icon(Icons.Filled.Search, "Buscar") },
@@ -103,7 +100,7 @@ private fun PetList(
             .fillMaxSize()
             .padding(horizontal = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(bottom = 8.dp)
+        contentPadding = PaddingValues(bottom = 16.dp) // Mais espaço no final da lista
     ) {
         items(pets, key = { it.id }) { pet ->
             PetCard(
@@ -175,7 +172,10 @@ private fun PetCard(
 }
 
 @Composable
-fun MoreOptionsMenu() {
+fun MoreOptionsMenu(
+    onNavigateToSettings: () -> Unit,
+    onNavigateToHelp: () -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
     IconButton(onClick = { expanded = true }) {
         Icon(Icons.Default.MoreVert, "Mais opções")
@@ -186,11 +186,17 @@ fun MoreOptionsMenu() {
     ) {
         DropdownMenuItem(
             text = { Text("Configurações") },
-            onClick = { expanded = false }
+            onClick = {
+                expanded = false
+                onNavigateToSettings()
+            }
         )
         DropdownMenuItem(
             text = { Text("Ajuda") },
-            onClick = { expanded = false }
+            onClick = {
+                expanded = false
+                onNavigateToHelp()
+            }
         )
     }
 }

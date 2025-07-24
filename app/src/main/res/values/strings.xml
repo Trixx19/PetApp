@@ -4,4 +4,5 @@
     <string name="delete_pet_description">Deletar o pet</string>
     <string name="home_destination">Início</string>
     <string name="favorites_destination">Favoritos</string>
+    <string name="information_destination">Informações</string>
 </resources>
