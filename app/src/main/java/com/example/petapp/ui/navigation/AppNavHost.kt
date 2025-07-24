@@ -32,8 +32,10 @@ fun AppNavHost(
         startDestination = PetDestinations.HOME_ROUTE,
         modifier = modifier
     ) {
+        // ## A CORREÇÃO ESTÁ AQUI ##
         composable(route = PetDestinations.HOME_ROUTE) {
             HomeScreen(
+                // A chamada agora está mais simples, sem o onNavigateToFavorites
                 onPetClick = { petId ->
                     navController.navigate("${PetDestinations.PET_DETAIL_ROUTE}/$petId")
                 },
@@ -53,11 +55,8 @@ fun AppNavHost(
 
         composable(
             route = "${PetDestinations.PET_DETAIL_ROUTE}/{${PetDestinations.PET_ID_ARG}}",
-            arguments = listOf(navArgument(PetDestinations.PET_ID_ARG) {
-                type = NavType.IntType
-            })
+            arguments = listOf(navArgument(PetDestinations.PET_ID_ARG) { type = NavType.IntType })
         ) {
-
             PetDetailsScreen(
                 onNavigateUp = { navController.popBackStack() },
                 onAddReminderClick = { petId ->
@@ -74,11 +73,8 @@ fun AppNavHost(
 
         composable(
             route = "${PetDestinations.ADD_REMINDER_ROUTE}/{${PetDestinations.PET_ID_ARG}}",
-            arguments = listOf(navArgument(PetDestinations.PET_ID_ARG) {
-                type = NavType.IntType
-            })
+            arguments = listOf(navArgument(PetDestinations.PET_ID_ARG) { type = NavType.IntType })
         ) {
-            // CORREÇÃO: O parâmetro 'onNavigateUp' foi removido porque não era esperado.
             AddReminderScreen(
                 onReminderAdded = { navController.popBackStack() }
             )

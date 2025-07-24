@@ -1,6 +1,9 @@
 package com.example.petapp.ui.screens
 
 import android.Manifest
+import android.app.AlarmManager
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,6 +13,8 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,8 +24,9 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.petapp.data.model.Reminder
-import com.example.petapp.notifications.AlarmSchedulerImpl
+import com.example.petapp.notifications.AlarmSchedulerImpl // 1. CORREÇÃO: Importando a implementação
 import com.example.petapp.ui.PetViewModel
+import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,83 +35,154 @@ fun AddReminderScreen(
     onReminderAdded: () -> Unit,
     viewModel: PetViewModel = viewModel(factory = PetViewModel.Factory)
 ) {
-    val pet by viewModel.uiState.collectAsState()
+    // --- ESTADOS DA UI ---
     var title by remember { mutableStateOf("") }
-    val context = LocalContext.current
-    val scheduler = remember { AlarmSchedulerImpl(context) }
-    var selectedDateTime by remember { mutableStateOf<Calendar?>(null) }
+    var showError by remember { mutableStateOf(false) }
 
-    // Lógica para pedir permissão de notificação
-    val permissionLauncher = rememberLauncherForActivityResult(
+    // --- LÓGICA DE DATA E HORA ---
+    val context = LocalContext.current
+    val calendar = Calendar.getInstance()
+    var selectedDate by remember { mutableStateOf(calendar.time) }
+    val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+
+    val datePickerDialog = DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            calendar.set(Calendar.YEAR, year)
+            calendar.set(Calendar.MONTH, month)
+            calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
+            selectedDate = calendar.time
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    )
+
+    val timePickerDialog = TimePickerDialog(
+        context,
+        { _, hour, minute ->
+            calendar.time = selectedDate
+            calendar.set(Calendar.HOUR_OF_DAY, hour)
+            calendar.set(Calendar.MINUTE, minute)
+            selectedDate = calendar.time
+        },
+        calendar.get(Calendar.HOUR_OF_DAY),
+        calendar.get(Calendar.MINUTE),
+        true
+    )
+
+    // --- LÓGICA DE NOTIFICAÇÕES ---
+    // 2. CORREÇÃO: Criando a instância da implementação, não da interface
+    val scheduler = remember { AlarmSchedulerImpl(context) }
+    val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted ->
             if (!isGranted) {
-                Toast.makeText(context, "Permissão de notificação negada.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "Sem permissão, as notificações não funcionarão.", Toast.LENGTH_LONG).show()
             }
         }
     )
 
-    // Lógica da UI para escolher data e hora (simplificada)
-    // ... (pode adicionar DatePicker e TimePicker aqui como na versão anterior)
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        Text(
-            text = "Novo Lembrete para ${pet?.name ?: "..."}",
-            style = MaterialTheme.typography.headlineSmall
-        )
-        OutlinedTextField(
-            value = title,
-            onValueChange = { title = it },
-            label = { Text("Título do Lembrete") },
-            modifier = Modifier.fillMaxWidth()
-        )
-        // Adicionar aqui botões para definir a data e hora em 'selectedDateTime'
-        Button(onClick = {
-            // Lógica para mostrar Date/Time Picker e atualizar selectedDateTime
-            // Exemplo:
-            selectedDateTime = Calendar.getInstance().apply {
-                add(Calendar.SECOND, 15) // Agendar para 15 segundos no futuro para teste
-            }
-            Toast.makeText(context, "Lembrete agendado para 15 segundos.", Toast.LENGTH_SHORT).show()
-        }) {
-            Text("Agendar (para teste)")
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Adicionar Lembrete") },
+                navigationIcon = {
+                    IconButton(onClick = onReminderAdded) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
         }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .padding(padding)
+                .padding(16.dp)
+                .fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            TextField(
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Título do Lembrete") },
+                modifier = Modifier.fillMaxWidth(),
+                isError = showError && title.isBlank(),
+                singleLine = true
+            )
+            if (showError && title.isBlank()) {
+                Text("O título é obrigatório", color = MaterialTheme.colorScheme.error)
+            }
 
-        Button(
-            onClick = {
-                // 1. Verificar permissão de notificação (Android 13+)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    val permissionStatus = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS)
-                    if (permissionStatus != PackageManager.PERMISSION_GRANTED) {
-                        permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                Button(onClick = { datePickerDialog.show() }) {
+                    Text("Data: ${dateFormatter.format(selectedDate)}")
+                }
+                Button(onClick = { timePickerDialog.show() }) {
+                    Text("Hora: ${timeFormatter.format(selectedDate)}")
+                }
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            Button(
+                onClick = {
+                    if (title.isBlank()) {
+                        showError = true
                         return@Button
                     }
-                }
 
-                // 2. Agendar o alarme
-                pet?.let { currentPet ->
-                    selectedDateTime?.let { calendar ->
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        val hasPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+                        if (!hasPermission) {
+                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                            return@Button
+                        }
+                    }
+
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
+                        Toast.makeText(context, "Por favor, ative a permissão para 'Alarmes e lembretes'.", Toast.LENGTH_LONG).show()
+                        Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).also { context.startActivity(it) }
+                        return@Button
+                    }
+
+                    val currentPet = viewModel.uiState.value
+                    if (currentPet != null) {
+                        // 3. CORREÇÃO: Criando o Reminder sem o campo 'priority'
                         val newReminder = Reminder(
                             title = title,
-                            dateTime = calendar.timeInMillis
+                            dateTime = selectedDate.time // Salva o tempo em milissegundos (Long)
                         )
-                        scheduler.schedule(newReminder) // Agendar o alarme
 
                         val updatedReminders = currentPet.reminders + newReminder
-                        viewModel.updatePet(currentPet.copy(reminders = updatedReminders))
+                        val updatedPet = currentPet.copy(reminders = updatedReminders)
+
+                        viewModel.updatePet(updatedPet)
+
+                        // 4. CORREÇÃO: Chamando o método 'schedule' correto
+                        scheduler.schedule(newReminder)
+
                         Toast.makeText(context, "Lembrete salvo e agendado!", Toast.LENGTH_SHORT).show()
                         onReminderAdded()
-                    } ?: Toast.makeText(context, "Por favor, defina uma data e hora.", Toast.LENGTH_SHORT).show()
-                }
-            },
-            enabled = title.isNotBlank()
-        ) {
-            Text("Salvar e Agendar Lembrete")
+                    } else {
+                        Toast.makeText(context, "Erro ao encontrar o pet.", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Salvar Lembrete")
+            }
         }
     }
 }

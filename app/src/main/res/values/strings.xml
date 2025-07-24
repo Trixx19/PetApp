@@ -2,4 +2,6 @@
     <string name="app_name">PetApp</string>
     <string name="add_pet_description">Adicionar um novo pet</string>
     <string name="delete_pet_description">Deletar o pet</string>
+    <string name="home_destination">Início</string>
+    <string name="favorites_destination">Favoritos</string>
 </resources>

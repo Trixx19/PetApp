@@ -10,9 +10,11 @@ import com.example.petapp.ui.theme.getDarkColorScheme
 @Composable
 fun PetAppTheme(
     darkTheme: Boolean = false,
-    themeVariant: ThemeVariant = ThemeVariant.MONOCHROME,
+    // MUDE AQUI para usar o tema azul como padrão
+    themeVariant: ThemeVariant = ThemeVariant.BLUE_ACCENT,
     content: @Composable () -> Unit
 ) {
+    // O resto do seu código continua igual...
     val colors = if (darkTheme) {
         getDarkColorScheme(themeVariant)
     } else {
