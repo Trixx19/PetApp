@@ -23,18 +23,18 @@ class AlarmScheduler(private val context: Context) {
             putExtra("notification_title", title)
             putExtra("notification_message", message)
             putExtra("notification_channel", channelId)
-            putExtra("notification_id", reminderId) // Passa o ID para o receiver
+            putExtra("notification_id", reminderId) // passa o ID para o receiver
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            reminderId, // Usa o ID único como Request Code
+            reminderId, // usa o ID único como Request Code
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         val triggerAtMillis = time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
-        // Agenda o alarme
+        // agenda o alarme
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
             triggerAtMillis,
