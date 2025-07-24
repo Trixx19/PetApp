@@ -16,31 +16,42 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.petapp.data.model.Pet
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PetItemCard(pet: Pet, onClick: () -> Unit) {
+fun PetItemCard(
+    pet: Pet,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    // 1. Usando o Card normal em vez do OutlinedCard para remover a borda.
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth(),
+        // 2. A MÁGICA: Adicionamos a elevação para criar a sombra.
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
         Row(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(pet.imageUrl)
-                    .crossfade(true)
-                    .error(android.R.drawable.ic_menu_gallery)
-                    .build(),
+                model = pet.imageUrl,
                 contentDescription = pet.name,
-                modifier = Modifier.size(80.dp),
+                modifier = Modifier.size(72.dp), // Um pouco maior, para se assemelhar à versão antiga
                 contentScale = ContentScale.Crop
             )
             Column(modifier = Modifier.weight(1f)) {
-                Text(pet.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                Text("${pet.specie} | ${pet.breed}", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = pet.name,
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Text(
+                    text = pet.breed,
+                    style = MaterialTheme.typography.bodyMedium
+                )
             }
         }
     }

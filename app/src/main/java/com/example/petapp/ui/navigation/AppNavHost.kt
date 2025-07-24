@@ -57,8 +57,7 @@ fun AppNavHost(
                 type = NavType.IntType
             })
         ) {
-            // 👇 A CORREÇÃO ESTÁ AQUI 👇
-            // Agora estamos a passar a ação 'onAddReminderClick'.
+
             PetDetailsScreen(
                 onNavigateUp = { navController.popBackStack() },
                 onAddReminderClick = { petId ->
@@ -79,9 +78,9 @@ fun AppNavHost(
                 type = NavType.IntType
             })
         ) {
+            // CORREÇÃO: O parâmetro 'onNavigateUp' foi removido porque não era esperado.
             AddReminderScreen(
-                onReminderAdded = { navController.popBackStack() },
-                onNavigateUp = { navController.popBackStack() }
+                onReminderAdded = { navController.popBackStack() }
             )
         }
     }
