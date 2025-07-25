@@ -4,46 +4,65 @@ import android.util.Log
 import com.example.petapp.data.model.Pet
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObjects
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.tasks.await
 
 class PetRepository(private val petDao: PetDao) {
 
-    // Instâncias do Firebase
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
 
-    // Funções que já existiam (para o Room)
+    // Funções do Room
     fun getAllPets(): Flow<List<Pet>> = petDao.getAllPets()
     fun getFavoritePets(): Flow<List<Pet>> = petDao.getFavoritePets()
     fun getPetStream(id: Int): Flow<Pet?> = petDao.getPetStream(id)
 
-    // Função modificada para salvar em ambos os locais
+    // Funções de escrita (agora sincronizadas)
     suspend fun insertPet(pet: Pet) {
-        // Salva localmente primeiro
         petDao.insertPet(pet)
-        // Em seguida, salva na nuvem
         savePetToFirestore(pet)
     }
 
-    // Função modificada para atualizar em ambos os locais
     suspend fun updatePet(pet: Pet) {
         petDao.updatePet(pet)
-        savePetToFirestore(pet) // A mesma função de salvar serve para atualizar
+        savePetToFirestore(pet)
     }
 
-    // Função modificada para deletar de ambos os locais
     suspend fun deletePet(pet: Pet) {
         petDao.deletePet(pet)
         deletePetFromFirestore(pet)
     }
 
-    // --- NOVAS FUNÇÕES PARA O FIRESTORE ---
+    // --- LÓGICA DE SINCRONIZAÇÃO DO FIRESTORE PARA O ROOM ---
 
-    private suspend fun savePetToFirestore(pet: Pet) {
-        val userId = auth.currentUser?.uid ?: return // Não faz nada se não houver usuário logado
+    suspend fun syncPetsFromFirestore() {
+        val userId = auth.currentUser?.uid ?: return
         try {
-            // Usa o ID do Room como ID do documento no Firestore para manter a consistência
+            val snapshot = firestore.collection("users").document(userId)
+                .collection("pets").get().await()
+
+            // Converte todos os documentos da coleção para uma lista de objetos Pet
+            val firestorePets = snapshot.toObjects<Pet>()
+
+            if (firestorePets.isNotEmpty()) {
+                // Insere todos os pets baixados no banco de dados local
+                // O OnConflictStrategy.REPLACE cuidará de adicionar novos e atualizar existentes
+                firestorePets.forEach { pet ->
+                    petDao.insertPet(pet)
+                }
+                Log.d("PetRepository", "${firestorePets.size} pets sincronizados do Firestore para o Room.")
+            }
+        } catch (e: Exception) {
+            Log.e("PetRepository", "Erro ao sincronizar pets do Firestore", e)
+        }
+    }
+
+
+    // Funções auxiliares privadas para o Firestore
+    private suspend fun savePetToFirestore(pet: Pet) {
+        val userId = auth.currentUser?.uid ?: return
+        try {
             firestore.collection("users").document(userId)
                 .collection("pets").document(pet.id.toString())
                 .set(pet).await()

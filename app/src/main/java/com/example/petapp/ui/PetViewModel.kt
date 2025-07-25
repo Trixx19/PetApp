@@ -1,5 +1,6 @@
 package com.example.petapp.ui
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
@@ -8,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.petapp.PetApplication
 import com.example.petapp.data.PetRepository
+import com.example.petapp.data.StorageRepository
 import com.example.petapp.data.model.Pet
 import com.example.petapp.data.model.Reminder
 import com.example.petapp.ui.navigation.PetDestinations
@@ -21,6 +23,9 @@ class PetViewModel(
     private val repository: PetRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    // Instância do novo repositório de armazenamento
+    private val storageRepository = StorageRepository()
 
     private val petId: Int? = savedStateHandle[PetDestinations.PET_ID_ARG]
 
@@ -89,6 +94,18 @@ class PetViewModel(
             val updatedPet = pet.copy(reminders = updatedReminders)
             repository.updatePet(updatedPet)
         }
+    }
+
+    fun syncPets() {
+        viewModelScope.launch {
+            repository.syncPetsFromFirestore()
+        }
+    }
+
+    // --- NOVA FUNÇÃO PARA UPLOAD DE IMAGEM ---
+    // A função retorna a URL da imagem ou null em caso de falha
+    suspend fun uploadPetImage(imageUri: Uri): String? {
+        return storageRepository.uploadPetImage(imageUri)
     }
 
     companion object {

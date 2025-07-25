@@ -14,15 +14,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -35,6 +32,7 @@ import com.example.petapp.data.model.Appointment
 import com.example.petapp.data.model.Pet
 import com.example.petapp.data.model.Vaccine
 import com.example.petapp.ui.PetViewModel
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -51,17 +49,16 @@ fun AddPetScreen(
     var sex by remember { mutableStateOf("Macho") }
     var description by remember { mutableStateOf("") }
     var imageUri by remember { mutableStateOf<Uri?>(null) }
-
-    // Vacina opcional
     var vaccineName by remember { mutableStateOf("") }
-    var vaccineIsDone by remember { mutableStateOf(false) } // Estado para o Checkbox
-
-    // Consulta opcional
+    var vaccineIsDone by remember { mutableStateOf(false) }
     var appointmentType by remember { mutableStateOf("") }
     var appointmentLocation by remember { mutableStateOf("") }
 
-    // --- LÓGICA DE DATA E HORA ---
+    var isLoading by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    // --- LÓGICA DE DATA E HORA ---
     val calendar = Calendar.getInstance()
     val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     val initialDate = calendar.time
@@ -69,7 +66,7 @@ fun AddPetScreen(
     var nextVaccineDate by remember { mutableStateOf<Date?>(null) }
     var appointmentDate by remember { mutableStateOf<Date?>(null) }
     var appointmentTime by remember { mutableStateOf<String?>(null) }
-    var vaccineAppliedDate by remember { mutableStateOf<Date?>(null) } // Estado para data de aplicação
+    var vaccineAppliedDate by remember { mutableStateOf<Date?>(null) }
 
     // Dialogs
     val birthDatePickerDialog = DatePickerDialog(context, { _, y, m, d -> val c = Calendar.getInstance().apply { set(y, m, d) }; birthDate = c.time }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
@@ -102,9 +99,9 @@ fun AddPetScreen(
             TopAppBar(
                 title = { Text("Adicionar Novo Pet") },
                 navigationIcon = {
-                    IconButton(onClick = onPetAdded) { // onPetAdded é a sua função para "voltar"
+                    IconButton(onClick = onPetAdded) {
                         Icon(
-                            imageVector = Icons.Rounded.ArrowBack, // Ícone arredondado
+                            imageVector = Icons.Rounded.ArrowBack,
                             contentDescription = "Voltar"
                         )
                     }
@@ -114,7 +111,7 @@ fun AddPetScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                modifier = Modifier.height(64.dp) // Altura padrão
+                modifier = Modifier.height(64.dp)
             )
         }
     ) { padding ->
@@ -215,30 +212,64 @@ fun AddPetScreen(
                         if (name.isBlank() || breed.isBlank()) {
                             Toast.makeText(context, "Nome e Raça são obrigatórios!", Toast.LENGTH_SHORT).show()
                         } else {
-                            val finalImageUrl = imageUri?.toString() ?: if (specie == "Cachorro") "local_dog" else "local_cat"
-                            val vaccinesList = mutableListOf<Vaccine>()
-                            if (vaccineName.isNotBlank()) {
-                                val dateApplied = if (vaccineIsDone) {
-                                    vaccineAppliedDate?.let { dateFormatter.format(it) } ?: "N/A"
+                            isLoading = true
+                            coroutineScope.launch {
+                                val imageUrl = if (imageUri != null) {
+                                    viewModel.uploadPetImage(imageUri!!)
                                 } else {
-                                    "Pendente"
+                                    if (specie == "Cachorro") "local_dog" else "local_cat"
                                 }
-                                vaccinesList.add(Vaccine(name = vaccineName, date = dateApplied, nextDueDate = nextVaccineDate?.let { dateFormatter.format(it) }))
+
+                                if (imageUrl == null && imageUri != null) {
+                                    Toast.makeText(context, "Falha ao salvar a imagem. Tente novamente.", Toast.LENGTH_LONG).show()
+                                    isLoading = false
+                                    return@launch
+                                }
+
+                                val vaccinesList = mutableListOf<Vaccine>()
+                                if (vaccineName.isNotBlank()) {
+                                    val dateApplied = if (vaccineIsDone) {
+                                        vaccineAppliedDate?.let { dateFormatter.format(it) } ?: "N/A"
+                                    } else {
+                                        "Pendente"
+                                    }
+                                    vaccinesList.add(Vaccine(name = vaccineName, date = dateApplied, nextDueDate = nextVaccineDate?.let { dateFormatter.format(it) }))
+                                }
+                                val appointmentsList = mutableListOf<Appointment>()
+                                if (appointmentType.isNotBlank()) {
+                                    appointmentsList.add(Appointment(type = appointmentType, date = appointmentDate?.let { dateFormatter.format(it) } ?: "N/A", time = appointmentTime ?: "N/A", location = appointmentLocation.ifBlank { null }))
+                                }
+
+                                val newPet = Pet(
+                                    name = name,
+                                    specie = specie,
+                                    sex = sex,
+                                    breed = breed,
+                                    birthDate = dateFormatter.format(birthDate),
+                                    description = description,
+                                    imageUrl = imageUrl ?: (if (specie == "Cachorro") "local_dog" else "local_cat"),
+                                    vaccines = vaccinesList,
+                                    appointments = appointmentsList,
+                                    reminders = emptyList()
+                                )
+
+                                viewModel.insertPet(newPet)
+
+                                isLoading = false
+                                Toast.makeText(context, "Pet salvo com sucesso!", Toast.LENGTH_SHORT).show()
+                                onPetAdded()
                             }
-                            val appointmentsList = mutableListOf<Appointment>()
-                            if (appointmentType.isNotBlank()) {
-                                appointmentsList.add(Appointment(type = appointmentType, date = appointmentDate?.let { dateFormatter.format(it) } ?: "N/A", time = appointmentTime ?: "N/A", location = appointmentLocation.ifBlank { null }))
-                            }
-                            val newPet = Pet(name = name, specie = specie, sex = sex, breed = breed, birthDate = dateFormatter.format(birthDate), description = description, imageUrl = finalImageUrl, vaccines = vaccinesList, appointments = appointmentsList, reminders = emptyList())
-                            viewModel.insertPet(newPet)
-                            Toast.makeText(context, "Pet salvo com sucesso!", Toast.LENGTH_SHORT).show()
-                            onPetAdded()
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    enabled = !isLoading,
                     contentPadding = PaddingValues(16.dp)
                 ) {
-                    Text("Salvar Pet")
+                    if (isLoading) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Salvar Pet")
+                    }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }

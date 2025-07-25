@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -11,6 +12,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
@@ -25,11 +27,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.petapp.R
 import com.example.petapp.data.model.Pet
 import com.example.petapp.ui.PetViewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +44,10 @@ fun HomeScreen(
 ) {
     val allPets by viewModel.allPets.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+
+    LaunchedEffect(key1 = Unit) {
+        viewModel.syncPets()
+    }
 
     val filteredPets = if (searchQuery.isBlank()) {
         allPets
@@ -66,7 +74,8 @@ fun HomeScreen(
             PetList(
                 pets = filteredPets,
                 onPetClick = onPetClick,
-                onToggleFavorite = { pet -> viewModel.toggleFavoriteStatus(pet) }
+                onToggleFavorite = { pet -> viewModel.toggleFavoriteStatus(pet) },
+                viewModel = viewModel
             )
         }
     }
@@ -93,11 +102,13 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PetList(
     pets: List<Pet>,
     onPetClick: (Int) -> Unit,
-    onToggleFavorite: (Pet) -> Unit
+    onToggleFavorite: (Pet) -> Unit,
+    viewModel: PetViewModel
 ) {
     LazyColumn(
         modifier = Modifier
@@ -107,11 +118,48 @@ private fun PetList(
         contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         items(pets, key = { it.id }) { pet ->
-            PetCard(
-                pet = pet,
-                onClick = { onPetClick(pet.id) },
-                onToggleFavorite = { onToggleFavorite(pet) }
+            val dismissState = rememberSwipeToDismissBoxState(
+                confirmValueChange = {
+                    if (it == SwipeToDismissBoxValue.EndToStart) {
+                        viewModel.deletePet(pet)
+                        true
+                    } else {
+                        false
+                    }
+                },
+                positionalThreshold = { it * .25f }
             )
+
+            SwipeToDismissBox(
+                state = dismissState,
+                backgroundContent = {
+                    val color = when(dismissState.targetValue) {
+                        SwipeToDismissBoxValue.EndToStart -> MaterialTheme.colorScheme.errorContainer
+                        else -> Color.Transparent
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(color)
+                            .padding(horizontal = 20.dp),
+                        contentAlignment = Alignment.CenterEnd
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Excluir",
+                            tint = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                },
+                enableDismissFromStartToEnd = false
+            ) {
+                PetCard(
+                    pet = pet,
+                    onClick = { onPetClick(pet.id) },
+                    onToggleFavorite = { onToggleFavorite(pet) }
+                )
+            }
         }
     }
 }

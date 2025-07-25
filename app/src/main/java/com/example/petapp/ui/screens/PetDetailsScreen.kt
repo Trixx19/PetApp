@@ -111,7 +111,6 @@ fun PetDetailsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar")
                     }
                 },
-                modifier = Modifier.height(74.dp),
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
