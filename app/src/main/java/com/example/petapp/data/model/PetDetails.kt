@@ -2,6 +2,7 @@ package com.example.petapp.data.model
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.util.UUID
 
 data class Vaccine(
     val name: String,
@@ -18,9 +19,13 @@ data class Appointment(
 )
 
 data class Reminder(
+    // Adicionando um ID único para cada lembrete
+    val id: String = UUID.randomUUID().toString(),
     val title: String,
     val dateTime: Long,
-    val isRepeating: Boolean = false
+    // Novos campos para as funcionalidades que você pediu
+    val isRepeating: Boolean = false,
+    val isCompleted: Boolean = false
 )
 
 @Entity(tableName = "pets")
@@ -39,4 +44,3 @@ data class Pet(
     val reminders: List<Reminder> = listOf(),
     val isFavorite: Boolean = false
 )
-

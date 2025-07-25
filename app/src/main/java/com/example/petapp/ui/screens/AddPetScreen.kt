@@ -106,7 +106,7 @@ fun AddPetScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                modifier = Modifier.height(74.dp)
+                modifier = Modifier.height(56.dp)
             )
         }
     ) { padding ->

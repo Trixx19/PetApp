@@ -9,6 +9,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.petapp.PetApplication
 import com.example.petapp.data.PetRepository
 import com.example.petapp.data.model.Pet
+import com.example.petapp.data.model.Reminder
 import com.example.petapp.ui.navigation.PetDestinations
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -71,20 +72,36 @@ class PetViewModel(
         }
     }
 
+    fun deleteReminder(pet: Pet, reminder: Reminder) {
+        viewModelScope.launch {
+            val updatedReminders = pet.reminders.filterNot { it.id == reminder.id }
+            val updatedPet = pet.copy(reminders = updatedReminders)
+            repository.updatePet(updatedPet)
+        }
+    }
+
+    fun toggleReminderCompleted(pet: Pet, reminder: Reminder) {
+        viewModelScope.launch {
+            val updatedReminders = pet.reminders.map {
+                if (it.id == reminder.id) {
+                    it.copy(isCompleted = !it.isCompleted)
+                } else {
+                    it
+                }
+            }
+            val updatedPet = pet.copy(reminders = updatedReminders)
+            repository.updatePet(updatedPet)
+        }
+    }
+
+
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {
             @Suppress("UNCHECKED_CAST")
-            override fun <T : ViewModel> create(
-                modelClass: Class<T>,
-                extras: CreationExtras
-            ): T {
+            override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as PetApplication
                 val savedStateHandle = extras.createSavedStateHandle()
-
-                return PetViewModel(
-                    application.repository,
-                    savedStateHandle
-                ) as T
+                return PetViewModel(application.repository, savedStateHandle) as T
             }
         }
     }

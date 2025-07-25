@@ -51,7 +51,7 @@ fun PetDetailsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar")
                     }
                 },
-                modifier = Modifier.height(74.dp),
+                modifier = Modifier.height(56.dp),
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -175,6 +175,10 @@ private fun AboutTab(pet: Pet, onAddReminderClick: () -> Unit) {
             Text(pet.description, style = MaterialTheme.typography.bodyLarge)
             Spacer(Modifier.height(24.dp))
         }
+        Button(onClick = onAddReminderClick, modifier = Modifier.align(Alignment.CenterHorizontally)) {
+            Icon(Icons.Default.AlarmAdd, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
+            Text("Adicionar Lembrete")
+        }
     }
 }
 
@@ -223,11 +227,6 @@ private fun RemindersTab(reminders: List<Reminder>) {
     if (reminders.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize().padding(16.dp), contentAlignment = Alignment.Center) {
             Text("Nenhum lembrete agendado.")
-        }
-
-        Button(onClick = onAddReminderClick, modifier = Modifier.align(Alignment.CenterHorizontally)) {
-            Icon(Icons.Default.AlarmAdd, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
-            Text("Adicionar Lembrete")
         }
     } else {
         LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
