@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("kotlin-kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -82,6 +83,17 @@ dependencies {
 
     // --- Carregamento de Imagens (Coil) ---
     implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Firebase Bill of Materials (BoM) - Gerencia as versões das bibliotecas
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+
+    // Bibliotecas para Autenticação, Firestore e Storage
+    implementation("com.google.firebase:firebase-auth")
+    implementation("com.google.firebase:firebase-firestore")
+    implementation("com.google.firebase:firebase-storage")
+
+    // Autenticação com Google
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 
     // --- Testes ---
     testImplementation(libs.junit)

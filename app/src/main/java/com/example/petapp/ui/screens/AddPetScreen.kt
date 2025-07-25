@@ -16,6 +16,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AddAPhoto
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -100,13 +101,20 @@ fun AddPetScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Adicionar Novo Pet") },
-                navigationIcon = { IconButton(onClick = onPetAdded) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar") } },
+                navigationIcon = {
+                    IconButton(onClick = onPetAdded) { // onPetAdded é a sua função para "voltar"
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowBack, // Ícone arredondado
+                            contentDescription = "Voltar"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                modifier = Modifier.height(56.dp)
+                modifier = Modifier.height(64.dp) // Altura padrão
             )
         }
     ) { padding ->

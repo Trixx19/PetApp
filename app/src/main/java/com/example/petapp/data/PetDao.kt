@@ -23,6 +23,7 @@ interface PetDao {
 
     @Query("SELECT * from pets WHERE isFavorite = 1 ORDER BY name ASC")
     fun getFavoritePets(): Flow<List<Pet>>
+
 }
 /*package com.example.petapp.data
 

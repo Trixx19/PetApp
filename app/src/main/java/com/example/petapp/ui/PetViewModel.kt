@@ -11,7 +11,10 @@ import com.example.petapp.data.PetRepository
 import com.example.petapp.data.model.Pet
 import com.example.petapp.data.model.Reminder
 import com.example.petapp.ui.navigation.PetDestinations
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class PetViewModel(
@@ -19,9 +22,6 @@ class PetViewModel(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    // ## A CORREÇÃO FINAL ESTÁ AQUI ##
-    // petId agora é um Int?, o que significa que ele PODE ser nulo.
-    // Isso permite que o ViewModel seja usado por telas que não têm um ID (como a HomeScreen).
     private val petId: Int? = savedStateHandle[PetDestinations.PET_ID_ARG]
 
     val allPets: StateFlow<List<Pet>> = repository.getAllPets()
@@ -38,9 +38,6 @@ class PetViewModel(
             initialValue = emptyList()
         )
 
-    // ## E A SEGUNDA PARTE DA CORREÇÃO ##
-    // O uiState só tenta carregar um pet específico se o petId não for nulo.
-    // Se for nulo, ele simplesmente continua nulo, sem causar erro.
     val uiState: StateFlow<Pet?> =
         if (petId != null) {
             repository.getPetStream(petId)
@@ -93,7 +90,6 @@ class PetViewModel(
             repository.updatePet(updatedPet)
         }
     }
-
 
     companion object {
         val Factory: ViewModelProvider.Factory = object : ViewModelProvider.Factory {

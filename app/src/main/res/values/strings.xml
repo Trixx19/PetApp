@@ -1,8 +1,13 @@
 <resources>
     <string name="app_name">PetApp</string>
     <string name="add_pet_description">Adicionar um novo pet</string>
+    <string name="pet_details_screen_delete_pet">Excluir Pet</string>
+    <string name="pet_details_screen_delete_pet_confirmation">Tem certeza que deseja excluir este pet? Esta ação não pode ser desfeita.</string>
     <string name="delete_pet_description">Deletar o pet</string>
     <string name="home_destination">Início</string>
     <string name="favorites_destination">Favoritos</string>
     <string name="information_destination">Informações</string>
+    <string name="core_ui_confirm">Confirmar</string>
+    <string name="core_ui_cancel">Cancelar</string>
+    <string name="default_web_client_id" translatable="false">888112364364-1te6leta36t9qhapnrf4ba7cab2d5tpj.apps.googleusercontent.com</string>
 </resources>
