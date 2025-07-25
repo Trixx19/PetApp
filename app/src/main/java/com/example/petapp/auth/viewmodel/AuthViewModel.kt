@@ -1,5 +1,6 @@
 package com.example.petapp.auth.viewmodel
 
+import android.app.Activity
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -7,8 +8,10 @@ import com.example.petapp.auth.data.AuthRepository
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import kotlinx.coroutines.launch
 
+// Versão simplificada, sem o AuthStateListener
 class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
 
+    // Método direto, como no material da aula
     fun isUserLoggedIn(): Boolean {
         return repository.isUserLoggedIn()
     }
@@ -34,11 +37,8 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
-    fun getUserName(onResult: (String?) -> Unit) {
-        viewModelScope.launch {
-            val name = repository.getUserName()
-            onResult(name)
-        }
+    fun getGoogleSignInClient(context: Context): GoogleSignInClient {
+        return repository.getGoogleSignInClient(context)
     }
 
     fun loginWithGoogle(idToken: String, onResult: (Boolean) -> Unit) {
@@ -48,8 +48,15 @@ class AuthViewModel(private val repository: AuthRepository) : ViewModel() {
         }
     }
 
-    fun getGoogleSignInClient(context: Context): GoogleSignInClient {
-        return repository.getGoogleSignInClient(context)
+    fun loginWithGitHub(activity: Activity, onResult: (Boolean) -> Unit) {
+        repository.loginWithGitHub(activity, onResult)
+    }
+
+    fun getUserName(onResult: (String?) -> Unit) {
+        viewModelScope.launch {
+            val name = repository.getUserName()
+            onResult(name)
+        }
     }
 
     fun logout(context: Context, onLoggedOut: () -> Unit) {

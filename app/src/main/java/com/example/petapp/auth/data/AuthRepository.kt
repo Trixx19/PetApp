@@ -1,13 +1,15 @@
 package com.example.petapp.auth.data
 
+import android.app.Activity
 import android.content.Context
 import android.util.Log
-import com.example.petapp.R // Alterado para o R do petapp
+import com.example.petapp.R
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.OAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.tasks.await
 
@@ -15,12 +17,6 @@ class AuthRepository {
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
     private val firestore: FirebaseFirestore = FirebaseFirestore.getInstance()
 
-    // Retorna o ID do usuário logado atualmente
-    fun getCurrentUserId(): String? {
-        return auth.currentUser?.uid
-    }
-
-    // Verifica se existe um usuário logado
     fun isUserLoggedIn(): Boolean {
         return auth.currentUser != null
     }
@@ -28,16 +24,7 @@ class AuthRepository {
     suspend fun registerUser(email: String, password: String, name: String): Boolean {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val uid = result.user?.uid
-            if (uid != null) {
-                val user = hashMapOf(
-                    "uid" to uid,
-                    "name" to name,
-                    "email" to email,
-                    "created_at" to System.currentTimeMillis()
-                )
-                firestore.collection("users").document(uid).set(user).await()
-            }
+            result.user?.uid?.let { saveUserData(it, name, email) }
             true
         } catch (e: Exception) {
             Log.e("AuthRepository", "Erro no cadastro: ${e.message}")
@@ -65,21 +52,6 @@ class AuthRepository {
         }
     }
 
-    suspend fun getUserName(): String? {
-        return try {
-            val uid = auth.currentUser?.uid
-            if (uid != null) {
-                val snapshot = firestore.collection("users").document(uid).get().await()
-                snapshot.getString("name")
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            Log.e("AuthRepository", "Erro ao buscar nome do usuário: ${e.message}")
-            null
-        }
-    }
-
     fun getGoogleSignInClient(context: Context): GoogleSignInClient {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(context.getString(R.string.default_web_client_id))
@@ -92,21 +64,11 @@ class AuthRepository {
         return try {
             val credential = GoogleAuthProvider.getCredential(idToken, null)
             val result = auth.signInWithCredential(credential).await()
-            val user = result.user
-            user?.let {
-                val uid = it.uid
-                val name = it.displayName ?: "Usuário"
-                val email = it.email ?: ""
-                val userRef = firestore.collection("users").document(uid)
+            result.user?.let {
+                val userRef = firestore.collection("users").document(it.uid)
                 val snapshot = userRef.get().await()
                 if (!snapshot.exists()) {
-                    val userData = hashMapOf(
-                        "uid" to uid,
-                        "name" to name,
-                        "email" to email,
-                        "created_at" to System.currentTimeMillis()
-                    )
-                    userRef.set(userData).await()
+                    saveUserData(it.uid, it.displayName ?: "Usuário Google", it.email)
                 }
             }
             true
@@ -116,9 +78,55 @@ class AuthRepository {
         }
     }
 
+    fun loginWithGitHub(activity: Activity, onResult: (Boolean) -> Unit) {
+        val provider = OAuthProvider.newBuilder("github.com").build()
+        auth.startActivityForSignInWithProvider(activity, provider)
+            .addOnSuccessListener { authResult ->
+                authResult.user?.let {
+                    val userRef = firestore.collection("users").document(it.uid)
+                    userRef.get().addOnSuccessListener { document ->
+                        if (!document.exists()) {
+                            saveUserData(it.uid, it.displayName ?: "Usuário GitHub", it.email)
+                        }
+                    }
+                }
+                onResult(true)
+            }
+            .addOnFailureListener { e ->
+                Log.e("AuthRepository", "Falha no login com GitHub: ${e.message}", e)
+                onResult(false)
+            }
+    }
+
+    // FUNÇÃO ADICIONADA
+    suspend fun getUserName(): String? {
+        val uid = auth.currentUser?.uid ?: return null
+        return try {
+            val snapshot = firestore.collection("users").document(uid).get().await()
+            snapshot.getString("name")
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Erro ao buscar nome do usuário: ${e.message}")
+            null
+        }
+    }
+
+    private fun saveUserData(uid: String, name: String, email: String?) {
+        val userData = hashMapOf(
+            "uid" to uid,
+            "name" to name,
+            "email" to (email ?: ""),
+            "created_at" to System.currentTimeMillis()
+        )
+        // Usamos addOnSuccessListener e addOnFailureListener para não precisar de 'await()'
+        firestore.collection("users").document(uid).set(userData)
+            .addOnSuccessListener { Log.d("AuthRepository", "Dados do usuário salvos com sucesso.") }
+            .addOnFailureListener { e -> Log.e("AuthRepository", "Erro ao salvar dados do usuário.", e) }
+    }
+
+
     fun logout(context: Context) {
         auth.signOut()
-        val googleSignInClient = getGoogleSignInClient(context)
-        googleSignInClient.signOut()
+        // Importante: Fazer logout do cliente do Google também
+        getGoogleSignInClient(context).signOut()
     }
 }

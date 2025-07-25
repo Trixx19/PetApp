@@ -93,7 +93,7 @@ dependencies {
     implementation("com.google.firebase:firebase-storage")
 
     // Autenticação com Google
-    implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("com.google.android.gms:play-services-auth:21.1.1")
 
     // --- Testes ---
     testImplementation(libs.junit)

@@ -1,33 +1,41 @@
 {
   "project_info": {
-    "project_number": "888112364364",
-    "project_id": "pet-app-c7168",
-    "storage_bucket": "pet-app-c7168.firebasestorage.app"
+    "project_number": "443913849461",
+    "project_id": "pet-app-b835d",
+    "storage_bucket": "pet-app-b835d.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:888112364364:android:f6752a09c6515606ed2de9",
+        "mobilesdk_app_id": "1:443913849461:android:f0698f060f74087b98063c",
         "android_client_info": {
           "package_name": "com.example.petapp"
         }
       },
       "oauth_client": [
         {
-          "client_id": "888112364364-1te6leta36t9qhapnrf4ba7cab2d5tpj.apps.googleusercontent.com",
+          "client_id": "443913849461-hgbsol59cmg687fjjm2s1pr5lp26ju90.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.petapp",
+            "certificate_hash": "466f69c301d0c69c469a2fe69c6c3fd93dabd316"
+          }
+        },
+        {
+          "client_id": "443913849461-56bq79urp6hcguda487vqau35fi977dt.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDpU0ter8Ul8CqJ6JA7mKBDGvcIs-4qvfU"
+          "current_key": "AIzaSyCp9bba4P_s0eAESbUyw1a8Owx2kTaqBXo"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "888112364364-1te6leta36t9qhapnrf4ba7cab2d5tpj.apps.googleusercontent.com",
+              "client_id": "443913849461-56bq79urp6hcguda487vqau35fi977dt.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

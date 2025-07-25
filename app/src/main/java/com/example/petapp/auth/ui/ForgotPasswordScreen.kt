@@ -34,13 +34,11 @@ fun ForgotPasswordScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 },
-                // Aplicando o padrão de cores e altura
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                modifier = Modifier.height(74.dp)
+                )
             )
         }
     ) { paddingValues ->

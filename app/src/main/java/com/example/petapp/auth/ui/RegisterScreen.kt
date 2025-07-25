@@ -47,8 +47,7 @@ fun RegisterScreen(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                modifier = Modifier.height(32.dp)
+                )
             )
         }
     ) { paddingValues ->
