@@ -1,7 +1,9 @@
 package com.example.petapp.ui.screens
 
+import android.net.Uri
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,10 +22,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.example.petapp.R
 import com.example.petapp.data.model.Pet
 import com.example.petapp.ui.PetViewModel
 
@@ -136,14 +140,21 @@ private fun PetCard(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(12.dp)
         ) {
-            AsyncImage(
-                model = pet.imageUrl,
-                contentDescription = pet.name,
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
+            val imageModifier = Modifier
+                .size(80.dp)
+                .clip(RoundedCornerShape(12.dp))
+
+            when (pet.imageUrl) {
+                "local_dog" -> Image(painterResource(R.drawable.icondog), "Cachorro", imageModifier)
+                "local_cat" -> Image(painterResource(R.drawable.iconcat), "Gato", imageModifier)
+                else -> AsyncImage(
+                    model = Uri.parse(pet.imageUrl),
+                    contentDescription = pet.name,
+                    modifier = imageModifier,
+                    contentScale = ContentScale.Crop,
+                    error = painterResource(if (pet.specie == "Cachorro") R.drawable.icondog else R.drawable.iconcat)
+                )
+            }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(pet.name, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)

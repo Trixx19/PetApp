@@ -2,7 +2,10 @@ package com.example.petapp.ui.screens
 
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -12,16 +15,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 import com.example.petapp.R
 import com.example.petapp.data.model.Appointment
 import com.example.petapp.data.model.Pet
@@ -42,10 +49,11 @@ fun AddPetScreen(
     var breed by remember { mutableStateOf("") }
     var sex by remember { mutableStateOf("Macho") }
     var description by remember { mutableStateOf("") }
-    var imageUrl by remember { mutableStateOf("https://i.imgur.com/5J3kL9o.png") }
+    var imageUri by remember { mutableStateOf<Uri?>(null) }
 
     // Vacina opcional
     var vaccineName by remember { mutableStateOf("") }
+    var vaccineIsDone by remember { mutableStateOf(false) } // Estado para o Checkbox
 
     // Consulta opcional
     var appointmentType by remember { mutableStateOf("") }
@@ -55,61 +63,27 @@ fun AddPetScreen(
     val context = LocalContext.current
     val calendar = Calendar.getInstance()
     val dateFormatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-
-    // Estado e Dialog para Data de Nascimento
     val initialDate = calendar.time
     var birthDate by remember { mutableStateOf(initialDate) }
-    val birthDatePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            val cal = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
-            birthDate = cal.time
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
-    )
-
-    // Estado e Dialog para Data da Vacina
     var nextVaccineDate by remember { mutableStateOf<Date?>(null) }
-    val vaccineDatePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            val cal = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
-            nextVaccineDate = cal.time
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
-    )
-
-    // Estado e Dialog para Data da Consulta
     var appointmentDate by remember { mutableStateOf<Date?>(null) }
-    val appointmentDatePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            val cal = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
-            appointmentDate = cal.time
-        },
-        calendar.get(Calendar.YEAR),
-        calendar.get(Calendar.MONTH),
-        calendar.get(Calendar.DAY_OF_MONTH)
-    )
-
-    // Estado e Dialog para Hora da Consulta
     var appointmentTime by remember { mutableStateOf<String?>(null) }
-    val timePickerDialog = TimePickerDialog(
-        context,
-        { _, hour, minute ->
-            appointmentTime = String.format("%02d:%02d", hour, minute)
-        },
-        calendar.get(Calendar.HOUR_OF_DAY),
-        calendar.get(Calendar.MINUTE),
-        true // true para formato 24h
+    var vaccineAppliedDate by remember { mutableStateOf<Date?>(null) } // Estado para data de aplicação
+
+    // Dialogs
+    val birthDatePickerDialog = DatePickerDialog(context, { _, y, m, d -> val c = Calendar.getInstance().apply { set(y, m, d) }; birthDate = c.time }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+    val vaccineDatePickerDialog = DatePickerDialog(context, { _, y, m, d -> val c = Calendar.getInstance().apply { set(y, m, d) }; nextVaccineDate = c.time }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+    val appointmentDatePickerDialog = DatePickerDialog(context, { _, y, m, d -> val c = Calendar.getInstance().apply { set(y, m, d) }; appointmentDate = c.time }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+    val timePickerDialog = TimePickerDialog(context, { _, hour, minute -> appointmentTime = String.format("%02d:%02d", hour, minute) }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true)
+    val vaccineAppliedDatePickerDialog = DatePickerDialog(context, { _, y, m, d -> val c = Calendar.getInstance().apply { set(y, m, d) }; vaccineAppliedDate = c.time }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+
+    // Launcher da Galeria
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri -> uri?.let { imageUri = it } }
     )
 
-    // --- LÓGICA DA BARRA DE PROGRESSO ---
+    // Lógica da Barra de Progresso
     val progress by remember(name, breed, sex, birthDate) {
         derivedStateOf {
             val totalFields = 4
@@ -125,12 +99,8 @@ fun AddPetScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Adicionar Novo Pet") }, // Mude o título para cada tela
-                navigationIcon = {
-                    IconButton(onClick = onPetAdded) { // Mude a ação de voltar para cada tela
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
-                    }
-                },
+                title = { Text("Adicionar Novo Pet") },
+                navigationIcon = { IconButton(onClick = onPetAdded) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar") } },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
@@ -141,29 +111,43 @@ fun AddPetScreen(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier.fillMaxWidth().height(8.dp),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-            )
+            LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().height(8.dp), color = MaterialTheme.colorScheme.primary, trackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f))
             Column(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .fillMaxSize()
-                    .verticalScroll(rememberScrollState()),
+                modifier = Modifier.padding(horizontal = 16.dp).fillMaxSize().verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    Image(painter = painterResource(id = R.drawable.icondog), contentDescription = "Cachorro", modifier = Modifier.size(80.dp).clip(CircleShape).border(3.dp, if (specie == "Cachorro") MaterialTheme.colorScheme.primary else Color.Gray, CircleShape).clickable { specie = "Cachorro"; imageUrl = "https://i.imgur.com/5J3kL9o.png" })
-                    Spacer(Modifier.width(24.dp))
-                    Image(painter = painterResource(id = R.drawable.iconcat), contentDescription = "Gato", modifier = Modifier.size(80.dp).clip(CircleShape).border(3.dp, if (specie == "Gato") MaterialTheme.colorScheme.primary else Color.Gray, CircleShape).clickable { specie = "Gato"; imageUrl = "https://i.imgur.com/sS81mK5.png" })
+                Box(
+                    modifier = Modifier.size(150.dp).clip(CircleShape).border(3.dp, MaterialTheme.colorScheme.primary, CircleShape).clickable { galleryLauncher.launch("image/*") },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (imageUri != null) {
+                        AsyncImage(model = imageUri, contentDescription = "Imagem do Pet", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                    } else {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Image(
+                                painter = painterResource(id = if (specie == "Cachorro") R.drawable.icondog else R.drawable.iconcat),
+                                contentDescription = specie,
+                                modifier = Modifier.size(80.dp)
+                            )
+                            Text(text = "Escolher foto", style = MaterialTheme.typography.bodySmall, textAlign = TextAlign.Center)
+                        }
+                    }
                 }
+
+                Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Espécie:", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+                    Row(modifier = Modifier.weight(2f), horizontalArrangement = Arrangement.SpaceAround) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { specie = "Cachorro" }) { RadioButton(selected = specie == "Cachorro", onClick = { specie = "Cachorro" }); Text("Cachorro") }
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { specie = "Gato" }) { RadioButton(selected = specie == "Gato", onClick = { specie = "Gato" }); Text("Gato") }
+                    }
+                }
+
                 TextField(value = name, onValueChange = { name = it }, label = { Text("Nome") }, modifier = Modifier.fillMaxWidth())
                 TextField(value = breed, onValueChange = { breed = it }, label = { Text("Raça") }, modifier = Modifier.fillMaxWidth())
+
                 Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                     Text("Sexo:", style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
                     Row(modifier = Modifier.weight(2f), horizontalArrangement = Arrangement.SpaceAround) {
@@ -171,17 +155,41 @@ fun AddPetScreen(
                         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { sex = "Fêmea" }) { RadioButton(selected = sex == "Fêmea", onClick = { sex = "Fêmea" }); Text("Fêmea") }
                     }
                 }
+
                 Button(onClick = { birthDatePickerDialog.show() }, modifier = Modifier.fillMaxWidth()) {
                     Text("Nascimento: ${dateFormatter.format(birthDate)}")
                 }
+
                 TextField(value = description, onValueChange = { description = it }, label = { Text("Descrição (Opcional)") }, modifier = Modifier.fillMaxWidth(), minLines = 3)
+
                 Divider(modifier = Modifier.padding(vertical = 16.dp))
+
                 Text("Adicionar Primeira Vacina (Opcional)", style = MaterialTheme.typography.titleMedium)
                 TextField(value = vaccineName, onValueChange = { vaccineName = it }, label = { Text("Nome da Vacina") }, modifier = Modifier.fillMaxWidth())
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = vaccineIsDone,
+                        onCheckedChange = { vaccineIsDone = it }
+                    )
+                    Text("Vacina já foi aplicada")
+                }
+
+                if (vaccineIsDone) {
+                    Button(onClick = { vaccineAppliedDatePickerDialog.show() }, modifier = Modifier.fillMaxWidth()) {
+                        Text(vaccineAppliedDate?.let { "Data de Aplicação: ${dateFormatter.format(it)}" } ?: "Selecionar Data de Aplicação")
+                    }
+                }
+
                 Button(onClick = { vaccineDatePickerDialog.show() }, modifier = Modifier.fillMaxWidth()) {
                     Text(nextVaccineDate?.let { "Próxima Dose: ${dateFormatter.format(it)}" } ?: "Selecionar Data da Próxima Dose")
                 }
+
                 Divider(modifier = Modifier.padding(vertical = 16.dp))
+
                 Text("Adicionar Primeira Consulta (Opcional)", style = MaterialTheme.typography.titleMedium)
                 TextField(value = appointmentType, onValueChange = { appointmentType = it }, label = { Text("Tipo de Consulta") }, modifier = Modifier.fillMaxWidth())
                 Button(onClick = { appointmentDatePickerDialog.show() }, modifier = Modifier.fillMaxWidth()) {
@@ -191,38 +199,29 @@ fun AddPetScreen(
                     Text(appointmentTime?.let { "Hora da Consulta: $it" } ?: "Selecionar Hora da Consulta")
                 }
                 TextField(value = appointmentLocation, onValueChange = { appointmentLocation = it }, label = { Text("Local") }, modifier = Modifier.fillMaxWidth())
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 Button(
                     onClick = {
                         if (name.isBlank() || breed.isBlank()) {
                             Toast.makeText(context, "Nome e Raça são obrigatórios!", Toast.LENGTH_SHORT).show()
                         } else {
+                            val finalImageUrl = imageUri?.toString() ?: if (specie == "Cachorro") "local_dog" else "local_cat"
                             val vaccinesList = mutableListOf<Vaccine>()
                             if (vaccineName.isNotBlank()) {
-                                vaccinesList.add(Vaccine(
-                                    name = vaccineName,
-                                    date = "N/A (Primeira dose a ser aplicada)",
-                                    nextDueDate = nextVaccineDate?.let { dateFormatter.format(it) }
-                                ))
+                                val dateApplied = if (vaccineIsDone) {
+                                    vaccineAppliedDate?.let { dateFormatter.format(it) } ?: "N/A"
+                                } else {
+                                    "Pendente"
+                                }
+                                vaccinesList.add(Vaccine(name = vaccineName, date = dateApplied, nextDueDate = nextVaccineDate?.let { dateFormatter.format(it) }))
                             }
-
                             val appointmentsList = mutableListOf<Appointment>()
                             if (appointmentType.isNotBlank()) {
-                                appointmentsList.add(Appointment(
-                                    type = appointmentType,
-                                    date = appointmentDate?.let { dateFormatter.format(it) } ?: "N/A",
-                                    time = appointmentTime ?: "N/A",
-                                    location = appointmentLocation.ifBlank { null }
-                                ))
+                                appointmentsList.add(Appointment(type = appointmentType, date = appointmentDate?.let { dateFormatter.format(it) } ?: "N/A", time = appointmentTime ?: "N/A", location = appointmentLocation.ifBlank { null }))
                             }
-
-                            val newPet = Pet(
-                                name = name, specie = specie, sex = sex, breed = breed,
-                                birthDate = dateFormatter.format(birthDate),
-                                description = description, imageUrl = imageUrl,
-                                vaccines = vaccinesList, appointments = appointmentsList, reminders = emptyList()
-                            )
-
+                            val newPet = Pet(name = name, specie = specie, sex = sex, breed = breed, birthDate = dateFormatter.format(birthDate), description = description, imageUrl = finalImageUrl, vaccines = vaccinesList, appointments = appointmentsList, reminders = emptyList())
                             viewModel.insertPet(newPet)
                             Toast.makeText(context, "Pet salvo com sucesso!", Toast.LENGTH_SHORT).show()
                             onPetAdded()
