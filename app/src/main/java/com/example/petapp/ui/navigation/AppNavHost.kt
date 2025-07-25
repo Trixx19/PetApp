@@ -17,7 +17,7 @@ object PetDestinations {
     const val PET_DETAIL_ROUTE = "pet_detail"
     const val SETTINGS_ROUTE = "settings"
     const val HELP_ROUTE = "help"
-    const val INFORMATION_ROUTE = "information" // Rota adicionada
+    const val INFORMATION_ROUTE = "information"
     const val PET_ID_ARG = "petId"
 }
 
@@ -38,7 +38,9 @@ fun AppNavHost(
             )
         }
         composable(route = PetDestinations.FAVORITES_ROUTE) {
-            FavoritesScreen(onPetClick = { petId -> navController.navigate("${PetDestinations.PET_DETAIL_ROUTE}/$petId") })
+            FavoritesScreen(
+                onPetClick = { petId -> navController.navigate("${PetDestinations.PET_DETAIL_ROUTE}/$petId")}
+            )
         }
         composable(
             route = "${PetDestinations.PET_DETAIL_ROUTE}/{${PetDestinations.PET_ID_ARG}}",
@@ -64,12 +66,8 @@ fun AppNavHost(
         composable(route = PetDestinations.HELP_ROUTE) {
             HelpScreen(navController = navController)
         }
-
-        // Rota para a nova tela de informações
         composable(route = PetDestinations.INFORMATION_ROUTE) {
-            InformationScreen(
-                onNavigateUp = { navController.popBackStack() }
-            )
+            InformationScreen(onNavigateUp = { navController.popBackStack() })
         }
     }
 }

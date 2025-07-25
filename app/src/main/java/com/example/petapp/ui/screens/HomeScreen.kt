@@ -76,7 +76,7 @@ private fun SearchBar(query: String, onQueryChange: (String) -> Unit) {
         label = { Text("Buscar pet") },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 16.dp, end = 16.dp, top = 1.dp, bottom = 16.dp),
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         shape = RoundedCornerShape(50),
         singleLine = true,
         trailingIcon = { Icon(Icons.Filled.Search, "Buscar") },
@@ -100,7 +100,7 @@ private fun PetList(
             .fillMaxSize()
             .padding(horizontal = 8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
-        contentPadding = PaddingValues(bottom = 16.dp) // Mais espaço no final da lista
+        contentPadding = PaddingValues(bottom = 16.dp)
     ) {
         items(pets, key = { it.id }) { pet ->
             PetCard(

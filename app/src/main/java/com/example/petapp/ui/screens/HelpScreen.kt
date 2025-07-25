@@ -66,7 +66,13 @@ fun HelpScreen(navController: NavController) {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = "Voltar")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                modifier = Modifier.height(74.dp)
             )
         }
     ) { innerPadding ->

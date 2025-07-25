@@ -73,7 +73,6 @@ fun AddReminderScreen(
     )
 
     // --- LÓGICA DE NOTIFICAÇÕES ---
-    // 2. CORREÇÃO: Criando a instância da implementação, não da interface
     val scheduler = remember { AlarmSchedulerImpl(context) }
     val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -98,7 +97,8 @@ fun AddReminderScreen(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                modifier = Modifier.height(74.dp)
             )
         }
     ) { padding ->

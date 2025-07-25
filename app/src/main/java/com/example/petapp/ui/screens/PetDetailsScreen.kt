@@ -45,6 +45,7 @@ fun PetDetailsScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar")
                     }
                 },
+                modifier = Modifier.height(74.dp),
                 actions = {
                     pet?.let { currentPet ->
                         IconToggleButton(

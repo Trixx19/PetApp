@@ -125,17 +125,18 @@ fun AddPetScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Adicionar Novo Pet") },
+                title = { Text("Adicionar Novo Pet") }, // Mude o título para cada tela
                 navigationIcon = {
-                    IconButton(onClick = onPetAdded) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Voltar")
+                    IconButton(onClick = onPetAdded) { // Mude a ação de voltar para cada tela
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                modifier = Modifier.height(74.dp)
             )
         }
     ) { padding ->

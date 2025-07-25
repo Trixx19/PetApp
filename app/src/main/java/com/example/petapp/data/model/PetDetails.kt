@@ -39,3 +39,4 @@ data class Pet(
     val reminders: List<Reminder> = listOf(),
     val isFavorite: Boolean = false
 )
+
