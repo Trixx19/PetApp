@@ -54,7 +54,6 @@ fun MainAppScreen(onLogout: () -> Unit) {
                         titleContentColor = MaterialTheme.colorScheme.onPrimary,
                         actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                     ),
-                    modifier = Modifier.height(64.dp),
                     actions = {
                         MoreOptionsMenu(
                             onNavigateToSettings = { navController.navigate(PetDestinations.SETTINGS_ROUTE) },

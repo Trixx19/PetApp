@@ -111,7 +111,6 @@ fun AddPetScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                modifier = Modifier.height(64.dp)
             )
         }
     ) { padding ->
@@ -214,18 +213,20 @@ fun AddPetScreen(
                         } else {
                             isLoading = true
                             coroutineScope.launch {
-                                val imageUrl = if (imageUri != null) {
-                                    viewModel.uploadPetImage(imageUri!!)
+                                // 1. SALVA A IMAGEM LOCALMENTE
+                                val imagePath = if (imageUri != null) {
+                                    viewModel.saveImageLocally(imageUri!!)
                                 } else {
                                     if (specie == "Cachorro") "local_dog" else "local_cat"
                                 }
 
-                                if (imageUrl == null && imageUri != null) {
+                                if (imagePath == null && imageUri != null) {
                                     Toast.makeText(context, "Falha ao salvar a imagem. Tente novamente.", Toast.LENGTH_LONG).show()
                                     isLoading = false
                                     return@launch
                                 }
 
+                                // 2. MONTA O OBJETO PET com o caminho local da imagem
                                 val vaccinesList = mutableListOf<Vaccine>()
                                 if (vaccineName.isNotBlank()) {
                                     val dateApplied = if (vaccineIsDone) {
@@ -247,12 +248,13 @@ fun AddPetScreen(
                                     breed = breed,
                                     birthDate = dateFormatter.format(birthDate),
                                     description = description,
-                                    imageUrl = imageUrl ?: (if (specie == "Cachorro") "local_dog" else "local_cat"),
+                                    imageUrl = imagePath ?: (if (specie == "Cachorro") "local_dog" else "local_cat"),
                                     vaccines = vaccinesList,
                                     appointments = appointmentsList,
                                     reminders = emptyList()
                                 )
 
+                                // 3. INSERE O PET NO BANCO DE DADOS
                                 viewModel.insertPet(newPet)
 
                                 isLoading = false

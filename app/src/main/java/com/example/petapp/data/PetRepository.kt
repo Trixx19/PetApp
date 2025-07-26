@@ -1,32 +1,65 @@
 package com.example.petapp.data
 
+import android.content.Context
 import android.util.Log
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.example.petapp.data.model.Pet
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObjects
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.tasks.await
 
-class PetRepository(private val petDao: PetDao) {
+class PetRepository(
+    private val petDao: PetDao,
+    // Precisamos do contexto para iniciar o WorkManager
+    private val context: Context
+) {
 
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
+    private val workManager = WorkManager.getInstance(context)
 
-    // Funções do Room
-    fun getAllPets(): Flow<List<Pet>> = petDao.getAllPets()
-    fun getFavoritePets(): Flow<List<Pet>> = petDao.getFavoritePets()
+    private fun getCurrentUserId(): String? = auth.currentUser?.uid
+
+    fun getAllPets(): Flow<List<Pet>> {
+        val userId = getCurrentUserId()
+        return if (userId != null) {
+            petDao.getAllPets(userId)
+        } else {
+            flowOf(emptyList())
+        }
+    }
+
+    fun getFavoritePets(): Flow<List<Pet>> {
+        val userId = getCurrentUserId()
+        return if (userId != null) {
+            petDao.getFavoritePets(userId)
+        } else {
+            flowOf(emptyList())
+        }
+    }
+
     fun getPetStream(id: Int): Flow<Pet?> = petDao.getPetStream(id)
 
-    // Funções de escrita (agora sincronizadas)
     suspend fun insertPet(pet: Pet) {
-        petDao.insertPet(pet)
-        savePetToFirestore(pet)
+        getCurrentUserId()?.let {
+            val petComDono = pet.copy(userId = it, needsSync = true)
+            petDao.insertPet(petComDono)
+            scheduleSync()
+        }
     }
 
     suspend fun updatePet(pet: Pet) {
-        petDao.updatePet(pet)
-        savePetToFirestore(pet)
+        getCurrentUserId()?.let {
+            val petComDono = pet.copy(userId = it, needsSync = true)
+            petDao.updatePet(petComDono)
+            scheduleSync()
+        }
     }
 
     suspend fun deletePet(pet: Pet) {
@@ -34,22 +67,18 @@ class PetRepository(private val petDao: PetDao) {
         deletePetFromFirestore(pet)
     }
 
-    // --- LÓGICA DE SINCRONIZAÇÃO DO FIRESTORE PARA O ROOM ---
-
     suspend fun syncPetsFromFirestore() {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = getCurrentUserId() ?: return
         try {
             val snapshot = firestore.collection("users").document(userId)
                 .collection("pets").get().await()
 
-            // Converte todos os documentos da coleção para uma lista de objetos Pet
             val firestorePets = snapshot.toObjects<Pet>()
 
             if (firestorePets.isNotEmpty()) {
-                // Insere todos os pets baixados no banco de dados local
-                // O OnConflictStrategy.REPLACE cuidará de adicionar novos e atualizar existentes
                 firestorePets.forEach { pet ->
-                    petDao.insertPet(pet)
+                    // Ao sincronizar da nuvem para o local, marcamos como já sincronizado (needsSync = false)
+                    petDao.insertPet(pet.copy(userId = userId, needsSync = false))
                 }
                 Log.d("PetRepository", "${firestorePets.size} pets sincronizados do Firestore para o Room.")
             }
@@ -58,22 +87,9 @@ class PetRepository(private val petDao: PetDao) {
         }
     }
 
-
-    // Funções auxiliares privadas para o Firestore
-    private suspend fun savePetToFirestore(pet: Pet) {
-        val userId = auth.currentUser?.uid ?: return
-        try {
-            firestore.collection("users").document(userId)
-                .collection("pets").document(pet.id.toString())
-                .set(pet).await()
-            Log.d("PetRepository", "Pet salvo no Firestore com sucesso!")
-        } catch (e: Exception) {
-            Log.e("PetRepository", "Erro ao salvar pet no Firestore", e)
-        }
-    }
-
     private suspend fun deletePetFromFirestore(pet: Pet) {
-        val userId = auth.currentUser?.uid ?: return
+        val userId = pet.userId
+        if (userId.isBlank()) return
         try {
             firestore.collection("users").document(userId)
                 .collection("pets").document(pet.id.toString())
@@ -82,5 +98,18 @@ class PetRepository(private val petDao: PetDao) {
         } catch (e: Exception) {
             Log.e("PetRepository", "Erro ao deletar pet do Firestore", e)
         }
+    }
+
+    private fun scheduleSync() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val syncRequest = OneTimeWorkRequestBuilder<SyncWorker>()
+            .setConstraints(constraints)
+            .build()
+
+        workManager.enqueue(syncRequest)
+        Log.d("PetRepository", "Tarefa de sincronização agendada.")
     }
 }

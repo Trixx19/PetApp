@@ -215,7 +215,8 @@ fun LoginScreen(
                     },
                     modifier = Modifier.fillMaxWidth().height(50.dp)
                 ) {
-                    Text("Entrar com GitHub", fontSize = 18.sp)
+                    Image(painter = painterResource(id = R.drawable.logo_github), contentDescription = "GitHubLogo", modifier = Modifier.size(24.dp))
+                    Text("  Entrar com GitHub", fontSize = 18.sp)
                 }
             }
         }

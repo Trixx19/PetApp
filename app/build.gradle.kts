@@ -92,6 +92,7 @@ dependencies {
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
     implementation("com.google.firebase:firebase-storage-ktx")
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
 
     // Autenticação com Google
     implementation("com.google.android.gms:play-services-auth:21.1.1")

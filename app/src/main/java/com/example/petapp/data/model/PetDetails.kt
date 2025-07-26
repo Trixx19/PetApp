@@ -19,11 +19,9 @@ data class Appointment(
 )
 
 data class Reminder(
-    // Adicionando um ID único para cada lembrete
     val id: String = UUID.randomUUID().toString(),
     val title: String,
     val dateTime: Long,
-    // Novos campos para as funcionalidades que você pediu
     val isRepeating: Boolean = false,
     val isCompleted: Boolean = false
 )
@@ -32,6 +30,8 @@ data class Reminder(
 data class Pet(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
+    // CAMPO ADICIONADO PARA ASSOCIAR O PET AO USUÁRIO
+    var userId: String = "",
     val name: String,
     val specie: String,
     val breed: String,
@@ -42,5 +42,6 @@ data class Pet(
     val vaccines: List<Vaccine> = listOf(),
     val appointments: List<Appointment> = listOf(),
     val reminders: List<Reminder> = listOf(),
-    val isFavorite: Boolean = false
+    val isFavorite: Boolean = false,
+    val needsSync: Boolean = true
 )

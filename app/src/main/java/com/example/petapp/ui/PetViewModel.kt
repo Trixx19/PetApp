@@ -1,5 +1,6 @@
 package com.example.petapp.ui
 
+import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -8,8 +9,8 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.petapp.PetApplication
+import com.example.petapp.data.ImageStorageManager
 import com.example.petapp.data.PetRepository
-import com.example.petapp.data.StorageRepository
 import com.example.petapp.data.model.Pet
 import com.example.petapp.data.model.Reminder
 import com.example.petapp.ui.navigation.PetDestinations
@@ -21,14 +22,14 @@ import kotlinx.coroutines.launch
 
 class PetViewModel(
     private val repository: PetRepository,
+    private val context: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    // Instância do novo repositório de armazenamento
-    private val storageRepository = StorageRepository()
-
+    private val imageStorageManager = ImageStorageManager(context)
     private val petId: Int? = savedStateHandle[PetDestinations.PET_ID_ARG]
 
+    // Estas chamadas agora usam internamente o userId no repositório
     val allPets: StateFlow<List<Pet>> = repository.getAllPets()
         .stateIn(
             scope = viewModelScope,
@@ -64,7 +65,12 @@ class PetViewModel(
     }
 
     fun deletePet(pet: Pet) {
-        viewModelScope.launch { repository.deletePet(pet) }
+        viewModelScope.launch {
+            if (pet.imageUrl.startsWith(context.filesDir.absolutePath)) {
+                imageStorageManager.deleteImageFromInternalStorage(pet.imageUrl)
+            }
+            repository.deletePet(pet)
+        }
     }
 
     fun toggleFavoriteStatus(pet: Pet) {
@@ -102,10 +108,8 @@ class PetViewModel(
         }
     }
 
-    // --- NOVA FUNÇÃO PARA UPLOAD DE IMAGEM ---
-    // A função retorna a URL da imagem ou null em caso de falha
-    suspend fun uploadPetImage(imageUri: Uri): String? {
-        return storageRepository.uploadPetImage(imageUri)
+    fun saveImageLocally(imageUri: Uri): String? {
+        return imageStorageManager.saveImageToInternalStorage(imageUri)
     }
 
     companion object {
@@ -114,7 +118,7 @@ class PetViewModel(
             override fun <T : ViewModel> create(modelClass: Class<T>, extras: CreationExtras): T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as PetApplication
                 val savedStateHandle = extras.createSavedStateHandle()
-                return PetViewModel(application.repository, savedStateHandle) as T
+                return PetViewModel(application.repository, application.applicationContext, savedStateHandle) as T
             }
         }
     }

@@ -98,7 +98,6 @@ fun AddReminderScreen(
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 ),
-                modifier = Modifier.height(74.dp)
             )
         }
     ) { padding ->
