@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import com.example.petapp.PetApplication
 import com.example.petapp.data.PetRepository
 import com.example.petapp.data.SettingsDataStore
+import com.example.petapp.data.ThemeMode // Importe o novo enum
 import com.example.petapp.data.ThemePreferences
 import com.example.petapp.ui.theme.ThemeVariant
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,8 +25,9 @@ class SettingsViewModel(
     val notificationsEnabled: StateFlow<Boolean> = settingsDataStore.notificationsEnabled
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), true)
 
-    val darkModeEnabled: StateFlow<Boolean> = settingsDataStore.darkModeEnabled
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
+    // O estado agora é do tipo ThemeMode
+    val themeMode: StateFlow<ThemeMode> = settingsDataStore.themeMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ThemeMode.SYSTEM)
 
     val themeVariant: StateFlow<ThemeVariant> = themePreferences.themeVariant
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), ThemeVariant.BLUE_ACCENT)
@@ -36,9 +38,10 @@ class SettingsViewModel(
         }
     }
 
-    fun setDarkModeEnabled(isEnabled: Boolean) {
+    // A função agora aceita um ThemeMode
+    fun setThemeMode(themeMode: ThemeMode) {
         viewModelScope.launch {
-            settingsDataStore.setDarkModeEnabled(isEnabled)
+            settingsDataStore.setThemeMode(themeMode)
         }
     }
 
@@ -65,7 +68,6 @@ class SettingsViewModel(
                 extras: CreationExtras
             ): T {
                 val application = checkNotNull(extras[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY]) as PetApplication
-                // Agora sim, a 'application' tem todas as dependências necessárias
                 return SettingsViewModel(
                     application.settingsDataStore,
                     application.themePreferences,

@@ -9,22 +9,60 @@ import androidx.work.WorkManager
 import com.example.petapp.data.model.Pet
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.toObjects
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 class PetRepository(
     private val petDao: PetDao,
-    // Precisamos do contexto para iniciar o WorkManager
     private val context: Context
 ) {
 
     private val firestore = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
     private val workManager = WorkManager.getInstance(context)
+    private var firestoreListener: ListenerRegistration? = null
 
     private fun getCurrentUserId(): String? = auth.currentUser?.uid
+
+    // --- NOVA FUNÇÃO PARA SINCRONIZAÇÃO EM TEMPO REAL ---
+    fun startRealtimeSync() {
+        val userId = getCurrentUserId() ?: return
+        // Se já houver um listener, removemo-lo para evitar duplicados
+        stopRealtimeSync()
+
+        val query = firestore.collection("users").document(userId).collection("pets")
+
+        firestoreListener = query.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.e("PetRepository", "Erro no listener do Firestore", error)
+                return@addSnapshotListener
+            }
+
+            if (snapshot != null && !snapshot.isEmpty) {
+                val firestorePets = snapshot.toObjects<Pet>()
+                Log.d("PetRepository", "Dados recebidos em tempo real: ${firestorePets.size} pets.")
+                // Usamos um CoroutineScope para inserir os dados numa thread de fundo
+                CoroutineScope(Dispatchers.IO).launch {
+                    firestorePets.forEach { pet ->
+                        // Inserimos no Room, marcando como já sincronizado
+                        petDao.insertPet(pet.copy(userId = userId, needsSync = false))
+                    }
+                }
+            }
+        }
+    }
+
+    // Função para parar o listener quando não for mais necessário
+    fun stopRealtimeSync() {
+        firestoreListener?.remove()
+        firestoreListener = null
+    }
 
     fun getAllPets(): Flow<List<Pet>> {
         val userId = getCurrentUserId()
@@ -65,26 +103,6 @@ class PetRepository(
     suspend fun deletePet(pet: Pet) {
         petDao.deletePet(pet)
         deletePetFromFirestore(pet)
-    }
-
-    suspend fun syncPetsFromFirestore() {
-        val userId = getCurrentUserId() ?: return
-        try {
-            val snapshot = firestore.collection("users").document(userId)
-                .collection("pets").get().await()
-
-            val firestorePets = snapshot.toObjects<Pet>()
-
-            if (firestorePets.isNotEmpty()) {
-                firestorePets.forEach { pet ->
-                    // Ao sincronizar da nuvem para o local, marcamos como já sincronizado (needsSync = false)
-                    petDao.insertPet(pet.copy(userId = userId, needsSync = false))
-                }
-                Log.d("PetRepository", "${firestorePets.size} pets sincronizados do Firestore para o Room.")
-            }
-        } catch (e: Exception) {
-            Log.e("PetRepository", "Erro ao sincronizar pets do Firestore", e)
-        }
     }
 
     private suspend fun deletePetFromFirestore(pet: Pet) {

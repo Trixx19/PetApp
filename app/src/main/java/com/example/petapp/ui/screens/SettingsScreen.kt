@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.petapp.data.ThemeMode // Importe o enum
 import com.example.petapp.ui.SettingsViewModel
 import com.example.petapp.ui.theme.ThemeVariant
 
@@ -20,12 +21,12 @@ fun SettingsScreen(
     onNavigateUp: () -> Unit,
     viewModel: SettingsViewModel = viewModel(factory = SettingsViewModel.Factory)
 ) {
-    // Coleta o estado do ViewModel
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsState()
-    val isDarkThemeEnabled by viewModel.darkModeEnabled.collectAsState()
+    val selectedThemeMode by viewModel.themeMode.collectAsState() // Estado do modo de tema
     val selectedThemeVariant by viewModel.themeVariant.collectAsState()
 
     var expandedThemeMenu by remember { mutableStateOf(false) }
+    var expandedThemeVariantMenu by remember { mutableStateOf(false) } // Para o seletor de cores
     val context = LocalContext.current
 
     Scaffold(
@@ -41,8 +42,7 @@ fun SettingsScreen(
                     containerColor = MaterialTheme.colorScheme.primary,
                     titleContentColor = MaterialTheme.colorScheme.onPrimary,
                     navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                modifier = Modifier.height(74.dp)
+                )
             )
         }
     ) { innerPadding ->
@@ -60,47 +60,27 @@ fun SettingsScreen(
                 checked = notificationsEnabled,
                 onCheckedChange = { viewModel.setNotificationsEnabled(it) }
             )
-            SettingSwitch(
-                title = "Ativar Modo Escuro",
-                checked = isDarkThemeEnabled,
-                onCheckedChange = { viewModel.setDarkModeEnabled(it) }
-            )
             Divider()
 
-            // Seletor de Tema
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("Tema do Aplicativo:", style = MaterialTheme.typography.bodyLarge)
-                ExposedDropdownMenuBox(
-                    expanded = expandedThemeMenu,
-                    onExpandedChange = { expandedThemeMenu = !expandedThemeMenu }
-                ) {
-                    OutlinedTextField(
-                        value = selectedThemeVariant.displayName,
-                        onValueChange = {},
-                        readOnly = true,
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandedThemeMenu) },
-                        modifier = Modifier.menuAnchor()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expandedThemeMenu,
-                        onDismissRequest = { expandedThemeMenu = false }
-                    ) {
-                        ThemeVariant.values().forEach { theme ->
-                            DropdownMenuItem(
-                                text = { Text(theme.displayName) },
-                                onClick = {
-                                    viewModel.saveThemeVariant(theme)
-                                    expandedThemeMenu = false
-                                }
-                            )
-                        }
-                    }
-                }
-            }
+            // Seletor de Modo de Tema (Claro, Escuro, Automático)
+            SettingDropdown(
+                label = "Modo do Tema",
+                expanded = expandedThemeMenu,
+                onExpandedChange = { expandedThemeMenu = it },
+                selectedValue = selectedThemeMode.name.replaceFirstChar { it.titlecase() }, // Ex: "System" -> "System"
+                options = ThemeMode.values().map { it.name.replaceFirstChar { c -> c.titlecase() } to it },
+                onOptionSelected = { viewModel.setThemeMode(it) }
+            )
+
+            // Seletor de Cor do Tema
+            SettingDropdown(
+                label = "Cor do Tema",
+                expanded = expandedThemeVariantMenu,
+                onExpandedChange = { expandedThemeVariantMenu = it },
+                selectedValue = selectedThemeVariant.displayName,
+                options = ThemeVariant.values().map { it.displayName to it },
+                onOptionSelected = { viewModel.saveThemeVariant(it) }
+            )
             Divider()
 
             Button(
@@ -112,6 +92,51 @@ fun SettingsScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text("Limpar Favoritos")
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun <T> SettingDropdown(
+    label: String,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
+    selectedValue: String,
+    options: List<Pair<String, T>>,
+    onOptionSelected: (T) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyLarge)
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = onExpandedChange
+        ) {
+            OutlinedTextField(
+                value = selectedValue,
+                onValueChange = {},
+                readOnly = true,
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier.menuAnchor()
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { onExpandedChange(false) }
+            ) {
+                options.forEach { (displayName, value) ->
+                    DropdownMenuItem(
+                        text = { Text(displayName) },
+                        onClick = {
+                            onOptionSelected(value)
+                            onExpandedChange(false)
+                        }
+                    )
+                }
             }
         }
     }

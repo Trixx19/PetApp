@@ -29,7 +29,11 @@ class PetViewModel(
     private val imageStorageManager = ImageStorageManager(context)
     private val petId: Int? = savedStateHandle[PetDestinations.PET_ID_ARG]
 
-    // Estas chamadas agora usam internamente o userId no repositório
+    init {
+        // Inicia a sincronização em tempo real quando o ViewModel é criado
+        startRealtimeSync()
+    }
+
     val allPets: StateFlow<List<Pet>> = repository.getAllPets()
         .stateIn(
             scope = viewModelScope,
@@ -102,10 +106,14 @@ class PetViewModel(
         }
     }
 
-    fun syncPets() {
-        viewModelScope.launch {
-            repository.syncPetsFromFirestore()
-        }
+    private fun startRealtimeSync() {
+        repository.startRealtimeSync()
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Para o listener quando o ViewModel é destruído para economizar recursos
+        repository.stopRealtimeSync()
     }
 
     fun saveImageLocally(imageUri: Uri): String? {

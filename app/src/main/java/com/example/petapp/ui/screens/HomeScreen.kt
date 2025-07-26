@@ -45,9 +45,8 @@ fun HomeScreen(
     val allPets by viewModel.allPets.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
 
-    LaunchedEffect(key1 = Unit) {
-        viewModel.syncPets()
-    }
+    // O LaunchedEffect que chamava syncPets() foi REMOVIDO
+    // A sincronização agora é automática e em tempo real via ViewModel
 
     val filteredPets = if (searchQuery.isBlank()) {
         allPets
@@ -196,7 +195,13 @@ private fun PetCard(
                 "local_dog" -> Image(painterResource(R.drawable.icondog), "Cachorro", imageModifier)
                 "local_cat" -> Image(painterResource(R.drawable.iconcat), "Gato", imageModifier)
                 else -> AsyncImage(
-                    model = Uri.parse(pet.imageUrl),
+                    model = if (pet.imageUrl.startsWith("/")) {
+                        // Se for um caminho local, cria um File
+                        java.io.File(pet.imageUrl)
+                    } else {
+                        // Senão, trata como Uri
+                        Uri.parse(pet.imageUrl)
+                    },
                     contentDescription = pet.name,
                     modifier = imageModifier,
                     contentScale = ContentScale.Crop,

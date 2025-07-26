@@ -4,24 +4,27 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.util.UUID
 
+// ADICIONADOS VALORES PADRÃO PARA COMPATIBILIDADE COM O FIRESTORE
 data class Vaccine(
-    val name: String,
-    val date: String,
+    val name: String = "",
+    val date: String = "",
     val nextDueDate: String? = null
 )
 
+// ADICIONADOS VALORES PADRÃO
 data class Appointment(
-    val type: String,
-    val date: String,
-    val time: String,
+    val type: String = "",
+    val date: String = "",
+    val time: String = "",
     val location: String? = null,
     val notes: String? = null
 )
 
+// ADICIONADOS VALORES PADRÃO
 data class Reminder(
     val id: String = UUID.randomUUID().toString(),
-    val title: String,
-    val dateTime: Long,
+    val title: String = "",
+    val dateTime: Long = 0L,
     val isRepeating: Boolean = false,
     val isCompleted: Boolean = false
 )
@@ -30,14 +33,14 @@ data class Reminder(
 data class Pet(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
-    // CAMPO ADICIONADO PARA ASSOCIAR O PET AO USUÁRIO
     var userId: String = "",
-    val name: String,
-    val specie: String,
-    val breed: String,
-    val sex: String,
-    val birthDate: String,
-    val description: String,
+    // ADICIONADOS VALORES PADRÃO PARA OS CAMPOS OBRIGATÓRIOS
+    val name: String = "",
+    val specie: String = "",
+    val breed: String = "",
+    val sex: String = "",
+    val birthDate: String = "",
+    val description: String = "",
     val imageUrl: String = "",
     val vaccines: List<Vaccine> = listOf(),
     val appointments: List<Appointment> = listOf(),
